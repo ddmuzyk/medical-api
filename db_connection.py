@@ -1,0 +1,56 @@
+import os
+from contextlib import contextmanager
+from typing import Optional
+from psycopg2 import pool as pg_pool
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class DbPool:
+    _pool: Optional[pg_pool.SimpleConnectionPool] = None
+
+    @classmethod
+    def init(cls) -> None:
+        if cls._pool is None:
+            cls._pool = pg_pool.SimpleConnectionPool(
+                minconn=1,
+                maxconn=10,
+                host="localhost",
+                database="medical",
+                user=os.environ["DB_USERNAME"],
+                password=os.environ["DB_PASSWORD"],
+            )
+
+    @classmethod
+    def getconn(cls):
+        cls.init()
+        assert cls._pool is not None
+        return cls._pool.getconn()
+
+    @classmethod
+    def putconn(cls, conn):
+        if cls._pool and conn:
+            cls._pool.putconn(conn)
+
+    @classmethod
+    @contextmanager
+    def cursor(cls, commit: bool = True):
+        conn = cls.getconn()
+        try:
+            with conn.cursor() as cur:
+                yield cur
+            if commit:
+                conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cls.putconn(conn)
+
+    @classmethod
+    def closeall(cls):
+        if cls._pool:
+            cls._pool.closeall()
+
+pool = DbPool()
+print(pool.getconn().cursor())
