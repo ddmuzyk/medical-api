@@ -35,22 +35,25 @@ class DbPool:
     @classmethod
     @contextmanager
     def cursor(cls, commit: bool = True):
-        conn = cls.getconn()
+        conn = None
+        cur = None
         try:
-            with conn.cursor() as cur:
-                yield cur
+            conn = cls.getconn()
+            cur = conn.cursor()
+            yield cur
             if commit:
-                conn.commit()
+                conn.commit() 
         except Exception:
-            conn.rollback()
+            if conn:
+                conn.rollback()
             raise
         finally:
-            cls.putconn(conn)
+            if cur:
+                cur.close()
+            if conn:
+                cls.putconn(conn)
 
     @classmethod
     def closeall(cls):
         if cls._pool:
             cls._pool.closeall()
-
-pool = DbPool()
-print(pool.getconn().cursor())
