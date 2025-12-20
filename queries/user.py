@@ -22,4 +22,15 @@ class UserQueryManager:
         user_id = self.cur.fetchone()[0]
         return user_id
     
-
+    def delete_users(self, *userIds):
+        if not userIds:
+            return 0
+        
+        placeholders = ','.join(['%s'] * len(userIds))
+        self.cur.execute(
+            f"""
+            DELETE FROM users WHERE id IN ({placeholders})
+            """,
+            userIds
+        )
+        return self.cur.rowcount
