@@ -15,8 +15,8 @@ class DbPool:
             cls._pool = pg_pool.SimpleConnectionPool(
                 minconn=1,
                 maxconn=10,
-                host="localhost",
-                database="medical",
+                host=os.environ["DB_HOST"],
+                database=os.environ["DB_NAME"],
                 user=os.environ["DB_USERNAME"],
                 password=os.environ["DB_PASSWORD"],
             )

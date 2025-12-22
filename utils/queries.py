@@ -1,5 +1,5 @@
 def create_placeholder_data(data_dict, allowed_columns):
-    filtered_data = {k: v for k, v in data_dict.items() if k in allowed_columns}
+    filtered_data = {k: v for k, v in data_dict.items() if k in allowed_columns and v is not None}
 
     if not filtered_data:
         raise ValueError("No valid columns provided")

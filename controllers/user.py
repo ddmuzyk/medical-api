@@ -9,30 +9,11 @@ bp = Blueprint('user', __name__)
 @bp.post('/register')
 def register_user():
     data = request.get_json() or {}
-    email = data.get('email')
-    password = data.get('password')
-    role = data.get('role', userRole['USER'])
     
     try:
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
-            user_data = {
-                'email': email,
-                'password': password,
-                'role': role
-            }
-            user_id = user_manager.add_user_to_db(**user_data)  
-            if role == userRole["USER"]:
-                patient_data = {
-                    'user_id': user_id,
-                    'first_name': data.get('first_name'),
-                    'last_name': data.get('last_name'),
-                    'pesel': data.get('pesel'),
-                    'phone': data.get('phone')
-                }
-                patient_data = {k: v for k, v in patient_data.items() if v is not None}
-                user_manager.add_patient(**patient_data)
-            
+            user_id = user_manager.register_user(**data)  
         return jsonify({"status": "success", "user_id": user_id}), 201
     except errors.UniqueViolation:
         return jsonify({"status": "error", "message": errorMessages["USER_EXISTS"]}), 409
