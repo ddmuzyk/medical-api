@@ -32,6 +32,20 @@ class UserQueryHelper:
         )
         return self.cur.fetchone()[0]
     
+    def insert_doctor(self, **doctor_data):
+        allowed_columns = {'user_id', 'first_name', 'last_name', 'specialization', 'license_number'}
+        columns,placeholders, values = create_placeholder_data(doctor_data, allowed_columns)
+
+        self.cur.execute(
+            f"""
+            INSERT INTO {userTables['DOCTORS']} ({columns})
+            VALUES ({placeholders})
+            RETURNING id
+            """,
+            tuple(values)
+        )
+        return self.cur.fetchone()[0]
+    
     def delete_user(self, user_id):
         self.cur.execute(
             f"""
