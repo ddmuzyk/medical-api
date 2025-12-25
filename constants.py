@@ -17,6 +17,12 @@ appointmentTables = {
     'PRESCRIPTION_ITEMS': 'prescription_items'
 }
 
+appointmentStatus = {
+    'SCHEDULED': 'scheduled',
+    'COMPLETED': 'completed',
+    'CANCELLED': 'cancelled',
+}
+
 specializations = {
     'CARDIOLOGY': 'cardiology',
     'DERMATOLOGY': 'dermatology',
@@ -26,6 +32,7 @@ specializations = {
     'ORTHOPEDICS': 'orthopedics',
     'PSYCHIATRY': 'psychiatry',
     'GYNECOLOGY': 'gynecology',
+    "ONCOLOGY": 'oncology',
     'ENT': 'ear_nose_throat',
     'GENERAL_MEDICINE': 'general_medicine'
 }

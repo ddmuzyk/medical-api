@@ -68,6 +68,42 @@ class AppointmentQueryHelper:
         )
         return self.cur.fetchone()[0]
     
+    def update_appointment_status(self, **appointment_data):
+        status, appointment_id = appointment_data.get('status'), appointment_data.get('appointment_id')
+        allowed_statuses = {'scheduled', 'completed', 'canceled'}
+        if appointment_data.get('status') not in allowed_statuses:
+            raise ValueError("Invalid status value")
+        
+        self.cur.execute(
+            f"""
+            UPDATE {appointmentTables['APPOINTMENTS']}
+            SET status = %s
+            WHERE id = %s
+            RETURNING id
+            """,
+            (status, appointment_id)
+        )
+        return self.cur.fetchone()[0]
+    
+    def update_doctor_availability(self, **availability_data):
+        is_available, availability_id = availability_data.get('is_available'), availability_data.get('availability_id')
+        if not isinstance(is_available, bool):
+            raise ValueError("is_available must be a boolean value")
+        
+        if availability_id is None:
+            raise ValueError("Availability_id must be provided")
+        
+        self.cur.execute(
+            f"""
+            UPDATE {appointmentTables['DOCTOR_AVAILABILITY']}
+            SET is_available = %s
+            WHERE id = %s
+            RETURNING id
+            """,
+            (is_available, availability_id)
+        )
+        return self.cur.fetchone()[0]
+    
 class AppointmentQueryManager:
     def __init__(self, cursor):
         self.helper = AppointmentQueryHelper(cursor)
@@ -92,3 +128,9 @@ class AppointmentQueryManager:
         if not prescription_item_id:
             raise Exception("Failed to create prescription item")
         return prescription_id
+    
+    def change_appointment_status(self, **appointment_data):
+        return self.helper.update_appointment_status(**appointment_data)
+    
+    def change_doctor_availability(self, **availability_data):
+        return self.helper.update_doctor_availability(**availability_data)

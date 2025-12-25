@@ -19,6 +19,20 @@ def register_user():
         return jsonify({"status": "error", "message": errorMessages["USER_EXISTS"]}), 409
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500 
+    
+@bp.post('/update')
+def update_user():
+    data = request.get_json() or {}
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"status": "error", "message": errorMessages["NO_USER_ID"]}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            updated_user_id = user_manager.update_user(**data)
+        return jsonify({"status": "success", "updated_user_id": updated_user_id}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @bp.post('/delete')
 def delete_user():
