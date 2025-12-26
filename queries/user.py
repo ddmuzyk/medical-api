@@ -121,6 +121,7 @@ class UserQueryHelper:
     
     def update_doctor_info(self, **doctor_data):
         user_id = doctor_data.get('user_id')
+        print(**doctor_data)
         if not user_id:
             raise ValueError("User ID is required for updating doctor info")
         
@@ -185,14 +186,20 @@ class UserQueryManager:
 
         return user_id
     
-    def update_user(self, user_id, **user_data):
+    def update_user(self, **user_data):
+        user_id = user_data.get('user_id')
+        if not user_id:
+            raise ValueError("User ID is required for updating user")
+        
         result = self.helper.get_user_by_user_id(user_id)
         if not result:
             raise ValueError("User not found")
         role = result[2]
 
         if role == userRole['USER']:
-            updated_id = self.helper.update_patient_info(user_id=user_id, **user_data)
+            updated_id = self.helper.update_patient_info(**user_data)
+        elif role == userRole['DOCTOR']:
+            updated_id = self.helper.update_doctor_info(**user_data)
         else:
             raise ValueError("Update functionality for this role is not implemented")
 
