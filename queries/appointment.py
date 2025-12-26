@@ -10,7 +10,7 @@ class AppointmentQueryHelper:
         allowed_columns = {'patient_id', 'doctor_id', 'availability_id', 'appointment_date', 'status', 'created_at'}
         columns, placeholders, values = create_placeholder_data({
             **appointment_data,
-            "created_at": appointment_data.get("created_at", dt.datetime.now())
+            "created_at": dt.datetime.now()
         }, allowed_columns)
 
         self.cur.execute(
@@ -40,7 +40,7 @@ class AppointmentQueryHelper:
         )
         return self.cur.fetchone()['id']
     
-    def get_appointment_by_id(self, appointment_id):
+    def get_appointment(self, appointment_id):
         self.cur.execute(
             f"""
             SELECT * FROM {appointmentTables['APPOINTMENTS']}
@@ -152,6 +152,27 @@ class PrescriptionQueryHelper:
     def __init__(self, cursor):
         self.cur = cursor
 
+    def get_prescription_by_id(self, prescription_id):
+        self.cur.execute(
+            f"""
+            SELECT * FROM {appointmentTables['PRESCRIPTIONS']}
+            WHERE id = %s
+            """,
+            (prescription_id,)
+        )
+        return self.cur.fetchone()
+    
+    def get_prescriptions_by_patient(self, patient_id):
+        self.cur.execute(
+            f"""
+            SELECT * FROM {appointmentTables['PRESCRIPTIONS']}
+            WHERE patient_id = %s
+            ORDER BY issued_at DESC
+            """,
+            (patient_id,)
+        )
+        return self.cur.fetchall()
+
     def get_prescription_by_appointment(self, appointment_id):
         self.cur.execute(
             f"""
@@ -231,6 +252,8 @@ class AppointmentQueryManager:
         self.cur.execute("SELECT 1 FROM doctors WHERE id = %s", (doctor_id,))
         if not self.cur.fetchone():
             raise ValueError(f"Doctor with id {doctor_id} does not exist")
+        
+        return self.appointment.insert_appointment(**appointment_data)
 
     def create_doctor_availability(self, **availability_data):
         return self.availability.insert_doctor_availability(**availability_data)

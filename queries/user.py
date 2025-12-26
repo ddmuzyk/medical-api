@@ -148,7 +148,8 @@ class UserQueryHelper:
     
     def update_user(self, user_id, **user_data):
         allowed_data = {'email', 'password_hash'}
-        set_clause_str, values = get_set_clause_and_values({**user_data, 'user_id': user_id}, allowed_data)
+        set_clause_str, values = get_set_clause_and_values({**user_data}, allowed_data)
+        values.append(user_id)
 
         self.cur.execute(
             f"""
@@ -235,7 +236,7 @@ class UserQueryManager:
         if not user_record:
             return None
 
-        role = user_record[2]
+        role = user_record['role']
 
         if role == userRole['USER']:
             self.patient.delete_patient_by_user_id(user_id)
