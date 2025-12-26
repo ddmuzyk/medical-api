@@ -224,12 +224,10 @@ class AppointmentQueryManager:
         patient_id = appointment_data.get('patient_id')
         doctor_id = appointment_data.get('doctor_id')
         
-        # Validate patient exists
         self.cur.execute("SELECT 1 FROM patients WHERE id = %s", (patient_id,))
         if not self.cur.fetchone():
             raise ValueError(f"Patient with id {patient_id} does not exist")
-        
-        # Validate doctor exists
+
         self.cur.execute("SELECT 1 FROM doctors WHERE id = %s", (doctor_id,))
         if not self.cur.fetchone():
             raise ValueError(f"Doctor with id {doctor_id} does not exist")
