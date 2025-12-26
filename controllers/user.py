@@ -6,6 +6,20 @@ from psycopg2 import errors
 
 bp = Blueprint('user', __name__)
 
+@bp.get('/<int:user_id>')
+def get_user(user_id):
+    if not user_id:
+        return jsonify({"status": "error", "message": errorMessages["NO_USER_ID"]}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            user = user_manager.get_user(user_id)
+            if not user:
+                return jsonify({"status": "error", "message": errorMessages["USER_NOT_FOUND"]}), 404
+        return jsonify({"status": "success", "user": user}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @bp.post('/register')
 def register_user():
     data = request.get_json() or {}
@@ -18,7 +32,7 @@ def register_user():
     except errors.UniqueViolation:
         return jsonify({"status": "error", "message": errorMessages["USER_EXISTS"]}), 409
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500 
+        return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.patch('/<int:user_id>')
 def update_user(user_id):

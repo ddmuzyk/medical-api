@@ -2,6 +2,7 @@ import os
 from contextlib import contextmanager
 from typing import Optional
 from psycopg2 import pool as pg_pool
+from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -39,7 +40,7 @@ class DbPool:
         cur = None
         try:
             conn = cls.getconn()
-            cur = conn.cursor()
+            cur = conn.cursor(cursor_factory=RealDictCursor)  # Add this
             yield cur
             if commit:
                 conn.commit() 

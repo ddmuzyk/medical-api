@@ -21,7 +21,7 @@ class AppointmentQueryHelper:
             """,
             tuple(values)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
     def update_appointment_status(self, **appointment_data):
         status, appointment_id = appointment_data.get('status'), appointment_data.get('appointment_id')
@@ -38,7 +38,7 @@ class AppointmentQueryHelper:
             """,
             (status, appointment_id)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
     def get_appointment_by_id(self, appointment_id):
         self.cur.execute(
@@ -106,7 +106,7 @@ class AvailabilityQueryHelper:
             """,
             tuple(values)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
     def update_doctor_availability(self, **availability_data):
         is_available, availability_id = availability_data.get('is_available'), availability_data.get('availability_id')
@@ -125,7 +125,7 @@ class AvailabilityQueryHelper:
             """,
             (is_available, availability_id)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
     def get_doctor_availability(self, doctor_id):
         self.cur.execute(
@@ -146,7 +146,7 @@ class AvailabilityQueryHelper:
             """,
             (availability_id,)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
 class PrescriptionQueryHelper:
     def __init__(self, cursor):
@@ -180,7 +180,7 @@ class PrescriptionQueryHelper:
             """,
             (prescription_id,)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
     def insert_prescription(self, **prescription_data):
         allowed_columns = {'appointment_id', 'issued_at', 'patient_id', 'doctor_id', 'notes'}
@@ -197,7 +197,7 @@ class PrescriptionQueryHelper:
             """,
             tuple(values)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
     
     def insert_prescription_item(self, **item_data):
         allowed_columns = {'prescription_id', 'medication_name', 'dosage', 'instructions'}
@@ -211,7 +211,7 @@ class PrescriptionQueryHelper:
             """,
             tuple(values)
         )
-        return self.cur.fetchone()[0]
+        return self.cur.fetchone()['id']
 
 class AppointmentQueryManager:
     def __init__(self, cursor):
