@@ -92,3 +92,18 @@ Code changes in `./server` are automatically reflected (hot reload enabled).
 To add Python dependencies:
 1. Add to `server/requirements.txt`
 2. Rebuild: `docker-compose up --build`
+
+## Creating an Admin User
+
+After starting the services, create an admin user using the CLI script:
+
+```bash
+docker exec -it flask_server python create_admin.py <email> <password> <first_name> <last_name>
+```
+
+**Example:**
+```bash
+docker exec -it flask_server python create_admin.py admin@hospital.com Admin123! Jane Smith
+```
+
+**Note:** Only admins can create doctor accounts and other admins through the API. Regular users can self-register.

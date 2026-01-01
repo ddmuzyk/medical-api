@@ -3,9 +3,12 @@ from queries.user import UserQueryManager
 from constants import errorMessages
 from db_connection import DbPool
 from psycopg2 import errors
+from middleware.auth import token_required, role_required
+from constants import userRole
 
 bp = Blueprint('user', __name__)
 
+@role_required(userRole['DOCTOR'], userRole['ADMIN'])
 @bp.get('/<int:user_id>')
 def get_user(user_id):
     if not user_id:
@@ -23,6 +26,23 @@ def get_user(user_id):
 @bp.post('/register')
 def register_user():
     data = request.get_json() or {}
+    data['role'] = userRole['USER']
+    
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            user_id = user_manager.register_user(**data)  
+        return jsonify({"status": "success", "user_id": user_id}), 201
+    except errors.UniqueViolation:
+        return jsonify({"status": "error", "message": errorMessages["USER_EXISTS"]}), 409
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.post('/register/doctor')
+@role_required(userRole['ADMIN'])
+def register_doctor():
+    data = request.get_json() or {}
+    data['role'] = userRole['DOCTOR']
     
     try:
         with DbPool.cursor() as cur:
