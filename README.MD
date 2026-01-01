@@ -10,8 +10,9 @@ Backend API for medical appointment system with PostgreSQL and Redis.
 ## Setup
 
 1. **Clone the repository**
+  For example:
    ```bash
-   git clone <https://github.com/ddmuzyk/medical-api.git>
+   git clone https://github.com/ddmuzyk/medical-api.git
    cd modelowanie
    ```
 
