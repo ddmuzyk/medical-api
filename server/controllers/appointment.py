@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify, g
 from queries.appointment import AppointmentQueryManager
+from queries.user import UserQueryManager
 from db_connection import DbPool
 from constants import userRole
 from middleware.auth import role_required, token_required
 
 bp = Blueprint('appointment', __name__)
 
-@bp.post('/create')
+@bp.post('/')
 @token_required
 def create_appointment():
     data = request.get_json() or {}
@@ -46,7 +47,15 @@ def get_appointments_by_patient(patient_id):
     try:
         with DbPool.cursor() as cur:
             appointment_manager = AppointmentQueryManager(cur)
+            user_manager = UserQueryManager(cur)
             appointments = appointment_manager.get_appointments_by_patient(patient_id)
+            patient = user_manager.get_patient(patient_id)
+
+            if g.role == userRole['USER'] and patient['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+            if g.role == userRole['DOCTOR']:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
         return jsonify({"status": "success", "appointments": appointments}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

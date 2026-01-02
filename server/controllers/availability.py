@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from queries.appointment import AppointmentQueryManager
 from db_connection import DbPool
-from middleware.auth import role_required
+from middleware.auth import role_required, token_required
 from constants import userRole
 
 bp = Blueprint('availability', __name__)
@@ -20,6 +20,7 @@ def create_doctor_availability():
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.get('/doctor/<int:doctor_id>')
+@token_required
 def get_doctor_availability(doctor_id):
     if not doctor_id:
         return jsonify({"status": "error", "message": "No doctor ID provided"}), 400
@@ -58,11 +59,12 @@ def delete_doctor_availability(availability_id):
     try:
         with DbPool.cursor() as cur:
             appointment_manager = AppointmentQueryManager(cur)
+            availability = appointment_manager.get_doctor_availability(availability_id)
+            isSelfDeletion = availability and availability['doctor_id'] == g.user_id
+            isAdmin = g.role == userRole['ADMIN']
 
-            if g.user_role == userRole['DOCTOR'] and g.user_role != userRole['ADMIN']:
-                availability = appointment_manager.get_doctor_availability(availability_id)
-                if not availability or availability['doctor_id'] != g.user_id:
-                    return jsonify({"status": "error", "message": "Unauthorized to modify this availability"}), 403
+            if not availability or (not isAdmin and not isSelfDeletion):
+                return jsonify({"status": "error", "message": "Unauthorized to modify this availability"}), 403
 
             deleted_availability = appointment_manager.delete_doctor_availability(availability_id)
             if not deleted_availability:
