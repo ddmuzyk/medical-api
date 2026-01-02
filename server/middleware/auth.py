@@ -20,7 +20,7 @@ def token_required(f):
             return jsonify({"status": "error", "message": "Invalid or expired token"}), 401
 
         g.user_id = session['user_id']
-        g.user_role = session['role']
+        g.role = session['role']
         g.token = token
         
         return f(*args, **kwargs)
@@ -33,7 +33,7 @@ def role_required(*allowed_roles):
         @wraps(f)
         @token_required
         def decorated(*args, **kwargs):
-            if g.user_role not in allowed_roles:
+            if g.role not in allowed_roles:
                 return jsonify({
                     "status": "error", 
                     "message": "Forbidden - insufficient permissions"

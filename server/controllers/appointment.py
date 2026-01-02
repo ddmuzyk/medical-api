@@ -1,11 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from queries.appointment import AppointmentQueryManager
 from db_connection import DbPool
-from psycopg2 import errors
+from constants import userRole
+from middleware.auth import role_required, token_required
 
 bp = Blueprint('appointment', __name__)
 
 @bp.post('/create')
+@token_required
 def create_appointment():
     data = request.get_json() or {}
     
@@ -25,6 +27,12 @@ def get_appointment(appointment_id):
         with DbPool.cursor() as cur:
             appointment_manager = AppointmentQueryManager(cur)
             appointment = appointment_manager.get_appointment(appointment_id)
+
+            if g.role == userRole['USER'] and appointment['patient_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+            if g.role == userRole['DOCTOR'] and appointment['doctor_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
             if not appointment:
                 return jsonify({"status": "error", "message": "Appointment not found"}), 404
         return jsonify({"status": "success", "appointment": appointment}), 200
