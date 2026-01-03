@@ -30,9 +30,9 @@ def get_appointment(appointment_id):
             appointment_manager = AppointmentQueryManager(cur)
             appointment = appointment_manager.get_appointment(appointment_id)
 
-            if g.role == UserRole.USER and appointment['patient_id'] != g.user_id:
+            if g.role == UserRole.USER.value and appointment['patient_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
-            if g.role == UserRole.DOCTOR and appointment['doctor_id'] != g.user_id:
+            if g.role == UserRole.DOCTOR.value and appointment['doctor_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
             if not appointment:
@@ -42,7 +42,7 @@ def get_appointment(appointment_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.get('/patient/<int:patient_id>')
-@token_required
+@role_required(UserRole.ADMIN.value, UserRole.USER.value)
 def get_appointments_by_patient(patient_id):
     if not patient_id:
         return jsonify({"status": "error", "message": "No patient ID provided"}), 400
@@ -53,9 +53,7 @@ def get_appointments_by_patient(patient_id):
             appointments = appointment_manager.get_appointments_by_patient(patient_id)
             patient = user_manager.get_patient(patient_id)
 
-            if g.role == UserRole.USER and patient['user_id'] != g.user_id:
-                return jsonify({"status": "error", "message": "Unauthorized"}), 403
-            if g.role == UserRole.DOCTOR:
+            if g.role == UserRole.USER.value and patient['user_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
         return jsonify({"status": "success", "appointments": appointments}), 200
@@ -63,7 +61,7 @@ def get_appointments_by_patient(patient_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.get('/doctor/<int:doctor_id>')
-@role_required(UserRole['ADMIN'], UserRole['DOCTOR'])
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def get_appointments_by_doctor(doctor_id):
     if not doctor_id:
         return jsonify({"status": "error", "message": "No doctor ID provided"}), 400
@@ -76,7 +74,7 @@ def get_appointments_by_doctor(doctor_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.patch('/<int:appointment_id>/status')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def change_appointment_status(appointment_id):
     data = request.get_json() or {}
     if not appointment_id:
@@ -85,7 +83,7 @@ def change_appointment_status(appointment_id):
         with DbPool.cursor() as cur:
             appointment_manager = AppointmentQueryManager(cur)
             appointment = appointment_manager.get_appointment(appointment_id)
-            isAdmin = g.role == UserRole.ADMIN
+            isAdmin = g.role == UserRole.ADMIN.value
             isSelfModification = appointment and appointment['doctor_id'] == g.user_id
 
             if not isAdmin and not isSelfModification:
@@ -97,7 +95,7 @@ def change_appointment_status(appointment_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.delete('/<int:appointment_id>')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def delete_appointment(appointment_id):
     if not appointment_id:
         return jsonify({"status": "error", "message": "No appointment ID provided"}), 400
@@ -105,7 +103,7 @@ def delete_appointment(appointment_id):
         with DbPool.cursor() as cur:
             appointment_manager = AppointmentQueryManager(cur)
             appointment = appointment_manager.get_appointment(appointment_id)
-            isAdmin = g.role == UserRole.ADMIN
+            isAdmin = g.role == UserRole.ADMIN.value
             isSelfModification = appointment and appointment['doctor_id'] == g.user_id
 
             if not isAdmin and not isSelfModification:

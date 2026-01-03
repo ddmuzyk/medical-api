@@ -13,7 +13,7 @@ class PatientQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {UserTables.PATIENTS} ({columns})
+            INSERT INTO {UserTables.PATIENTS.value} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -25,7 +25,7 @@ class PatientQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, pesel, phone
-            FROM {UserTables.PATIENTS} WHERE user_id = %s
+            FROM {UserTables.PATIENTS.value} WHERE user_id = %s
             """,
             (user_id,)
         )
@@ -35,7 +35,7 @@ class PatientQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, pesel, phone
-            FROM {UserTables.PATIENTS} WHERE id = %s
+            FROM {UserTables.PATIENTS.value} WHERE id = %s
             """,
             (patient_id,)
         )
@@ -44,7 +44,7 @@ class PatientQueryHelper:
     def delete_patient_by_user_id(self, user_id):
         self.cur.execute(
             f"""
-            DELETE FROM {UserTables.PATIENTS} WHERE user_id = %s
+            DELETE FROM {UserTables.PATIENTS.value} WHERE user_id = %s
             RETURNING id
             """,
             (user_id,)
@@ -61,7 +61,7 @@ class PatientQueryHelper:
 
         self.cur.execute(
             f"""
-            UPDATE {UserTables.PATIENTS}
+            UPDATE {UserTables.PATIENTS.value}
             SET {set_clause_str}
             WHERE user_id = %s
             RETURNING id
@@ -84,7 +84,7 @@ class DoctorQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {UserTables.DOCTORS} ({columns})
+            INSERT INTO {UserTables.DOCTORS.value} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -96,7 +96,7 @@ class DoctorQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, specialization, license_number
-            FROM {UserTables.DOCTORS} WHERE user_id = %s
+            FROM {UserTables.DOCTORS.value} WHERE user_id = %s
             """,
             (user_id,)
         )
@@ -106,7 +106,7 @@ class DoctorQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, specialization, license_number
-            FROM {UserTables.DOCTORS} WHERE id = %s
+            FROM {UserTables.DOCTORS.value} WHERE id = %s
             """,
             (doctor_id,)
         )
@@ -116,7 +116,7 @@ class DoctorQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, specialization, license_number
-            FROM {UserTables.DOCTORS} WHERE specialization = %s
+            FROM {UserTables.DOCTORS.value} WHERE specialization = %s
             """,
             (specialization,)
         )
@@ -125,7 +125,7 @@ class DoctorQueryHelper:
     def delete_doctor_by_user_id(self, user_id):
         self.cur.execute(
             f"""
-            DELETE FROM {UserTables.DOCTORS} WHERE user_id = %s
+            DELETE FROM {UserTables.DOCTORS.value} WHERE user_id = %s
             RETURNING id
             """,
             (user_id,)
@@ -143,7 +143,7 @@ class DoctorQueryHelper:
 
         self.cur.execute(
             f"""
-            UPDATE {UserTables.DOCTORS}
+            UPDATE {UserTables.DOCTORS.value}
             SET {set_clause_str}
             WHERE user_id = %s
             RETURNING id
@@ -158,7 +158,7 @@ class UserQueryHelper:
     def insert_user(self, email, password_hash, is_active, role):
         self.cur.execute(
             f"""
-            INSERT INTO {UserTables.USERS} (email, password_hash, role, is_active, created_at)
+            INSERT INTO {UserTables.USERS.value} (email, password_hash, role, is_active, created_at)
             VALUES (%s, %s, %s, %s, %s)
             RETURNING id
             """,
@@ -169,7 +169,7 @@ class UserQueryHelper:
     def get_user_by_id(self, user_id):
         self.cur.execute(
             f"""
-            SELECT id, email, role, is_active, created_at FROM {UserTables.USERS} WHERE id = %s
+            SELECT id, email, role, is_active, created_at FROM {UserTables.USERS.value} WHERE id = %s
             """,
             (user_id,)
         )
@@ -178,7 +178,7 @@ class UserQueryHelper:
     def get_user_by_email(self, email):
         self.cur.execute(
             f"""
-            SELECT id, email, password_hash, role, is_active, created_at FROM {UserTables.USERS} WHERE email = %s
+            SELECT id, email, password_hash, role, is_active, created_at FROM {UserTables.USERS.value} WHERE email = %s
             """,
             (email,)
         )
@@ -188,10 +188,10 @@ class UserQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, email, role, created_at 
-            FROM {UserTables.USERS} 
+            FROM {UserTables.USERS.value} 
             WHERE is_active = FALSE AND role = %s
             """,
-            (UserRole.DOCTOR,)
+            (UserRole.DOCTOR.value,)
         )
         return self.cur.fetchall()
     
@@ -202,7 +202,7 @@ class UserQueryHelper:
 
         self.cur.execute(
             f"""
-            UPDATE {UserTables.USERS}
+            UPDATE {UserTables.USERS.value}
             SET {set_clause_str}
             WHERE id = %s
             RETURNING id
@@ -214,7 +214,7 @@ class UserQueryHelper:
     def activate_user(self, user_id):
         self.cur.execute(
             f"""
-            UPDATE {UserTables.USERS}
+            UPDATE {UserTables.USERS.value}
             SET is_active = TRUE
             WHERE id = %s
             RETURNING id
@@ -226,7 +226,7 @@ class UserQueryHelper:
     def delete_user(self, user_id):
         self.cur.execute(
             f"""
-            DELETE FROM {UserTables.USERS} WHERE id = %s
+            DELETE FROM {UserTables.USERS.value} WHERE id = %s
             RETURNING id
             """,
             (user_id,)
@@ -249,11 +249,11 @@ class UserQueryManager:
         user_id = self.user.insert_user(
             email=user_data['email'],
             password_hash=hashed_password,
-            is_active=user_data['role'] == UserRole.USER,
+            is_active=user_data['role'] == UserRole.USER.value,
             role=user_data['role']
         )
 
-        if user_data['role'] == UserRole.USER:
+        if user_data['role'] == UserRole.USER.value:
             self.patient.insert_patient(
                 user_id=user_id,
                 first_name=user_data.get('first_name'),
@@ -262,7 +262,7 @@ class UserQueryManager:
                 phone=user_data.get('phone')
             )
 
-        elif user_data['role'] == UserRole.DOCTOR:
+        elif user_data['role'] == UserRole.DOCTOR.value:
             self.doctor.insert_doctor(
                 user_id=user_id,
                 first_name=user_data.get('first_name'),
@@ -281,7 +281,7 @@ class UserQueryManager:
             email=email,
             password_hash=hashed_password,
             is_active=True,
-            role=UserRole.ADMIN
+            role=UserRole.ADMIN.value
         )
         return user_id
 
@@ -328,9 +328,9 @@ class UserQueryManager:
 
         role = user_record['role']
 
-        if role == UserRole.USER:
+        if role == UserRole.USER.value:
             self.patient.delete_patient_by_user_id(user_id)
-        elif role == UserRole.DOCTOR:
+        elif role == UserRole.DOCTOR.value:
             self.doctor.delete_doctor_by_user_id(user_id)
 
         deleted_user_id = self.user.delete_user(user_id)

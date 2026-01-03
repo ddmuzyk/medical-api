@@ -8,7 +8,7 @@ from middleware.auth import token_required, role_required
 bp = Blueprint('prescription', __name__)
 
 @bp.post('/create')
-@role_required(UserRole.DOCTOR, UserRole.ADMIN)
+@role_required(UserRole.DOCTOR.value, UserRole.ADMIN.value)
 def create_prescription():
     data = request.get_json() or {}
     
@@ -34,11 +34,11 @@ def get_prescription(prescription_id):
             if not prescription:
                 return jsonify({"status": "error", "message": "Prescription not found"}), 404
 
-            if g.role == UserRole.USER:
+            if g.role == UserRole.USER.value:
                 patient = user_manager.get_patient(prescription['patient_id'])
                 if patient['user_id'] != g.user_id:
                     return jsonify({"status": "error", "message": "Unauthorized"}), 403
-            elif g.role == UserRole.DOCTOR:
+            elif g.role == UserRole.DOCTOR.value:
                 doctor = user_manager.get_doctor(prescription['doctor_id'])
                 if doctor['user_id'] != g.user_id:
                     return jsonify({"status": "error", "message": "Unauthorized"}), 403
@@ -48,7 +48,7 @@ def get_prescription(prescription_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.get('/patient/<int:patient_id>')
-@role_required(UserRole.ADMIN, UserRole.USER)
+@role_required(UserRole.ADMIN.value, UserRole.USER.value)
 def get_prescriptions_by_patient(patient_id):
     if not patient_id:
         return jsonify({"status": "error", "message": "No patient ID provided"}), 400
@@ -57,7 +57,7 @@ def get_prescriptions_by_patient(patient_id):
             user_manager = UserQueryManager(cur)
             patient = user_manager.get_patient(patient_id)
 
-            if g.role == UserRole.USER and patient['user_id'] != g.user_id:
+            if g.role == UserRole.USER.value and patient['user_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
             prescription_manager = PrescriptionQueryManager(cur)
@@ -67,7 +67,7 @@ def get_prescriptions_by_patient(patient_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.get('/doctor/<int:doctor_id>')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def get_prescriptions_by_doctor(doctor_id):
     if not doctor_id:
         return jsonify({"status": "error", "message": "No doctor ID provided"}), 400
@@ -76,7 +76,7 @@ def get_prescriptions_by_doctor(doctor_id):
             user_manager = UserQueryManager(cur)
             doctor = user_manager.get_doctor(doctor_id)
 
-            if g.role == UserRole.DOCTOR and doctor['user_id'] != g.user_id:
+            if g.role == UserRole.DOCTOR.value and doctor['user_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
             prescription_manager = PrescriptionQueryManager(cur)
@@ -86,7 +86,7 @@ def get_prescriptions_by_doctor(doctor_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.delete('/<int:prescription_id>')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def delete_prescription(prescription_id):
     if not prescription_id:
         return jsonify({"status": "error", "message": "No prescription ID provided"}), 400
@@ -99,7 +99,7 @@ def delete_prescription(prescription_id):
                 return jsonify({"status": "error", "message": "Prescription not found"}), 404
             doctor = user_manager.get_doctor(prescription['doctor_id']) if prescription else None
 
-            isAdmin = g.role == UserRole.ADMIN
+            isAdmin = g.role == UserRole.ADMIN.value
             isSelfDeletion = doctor and doctor['user_id'] == g.user_id
             if not isAdmin and not isSelfDeletion:
                 return jsonify({"status": "error", "message": "Unauthorized to delete this prescription"}), 403

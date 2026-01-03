@@ -9,7 +9,7 @@ class PrescriptionQueryHelper:
     def get_prescription_by_id(self, prescription_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {AppointmentTables.PRESCRIPTIONS}
+            SELECT * FROM {AppointmentTables.PRESCRIPTIONS.value}
             WHERE id = %s
             """,
             (prescription_id,)
@@ -19,7 +19,7 @@ class PrescriptionQueryHelper:
     def get_prescriptions_by_patient(self, patient_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {AppointmentTables.PRESCRIPTIONS}
+            SELECT * FROM {AppointmentTables.PRESCRIPTIONS.value}
             WHERE patient_id = %s
             ORDER BY issued_at DESC
             """,
@@ -30,7 +30,7 @@ class PrescriptionQueryHelper:
     def get_prescription_by_appointment(self, appointment_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {AppointmentTables.PRESCRIPTIONS}
+            SELECT * FROM {AppointmentTables.PRESCRIPTIONS.value}
             WHERE appointment_id = %s
             """,
             (appointment_id,)
@@ -40,7 +40,7 @@ class PrescriptionQueryHelper:
     def get_prescriptions_by_doctor(self, doctor_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {AppointmentTables.PRESCRIPTIONS}
+            SELECT * FROM {AppointmentTables.PRESCRIPTIONS.value}
             WHERE doctor_id = %s
             ORDER BY issued_at DESC
             """,
@@ -51,7 +51,7 @@ class PrescriptionQueryHelper:
     def get_prescription_items(self, prescription_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {AppointmentTables.PRESCRIPTION_ITEMS}
+            SELECT * FROM {AppointmentTables.PRESCRIPTION_ITEMS.value}
             WHERE prescription_id = %s
             """,
             (prescription_id,)
@@ -67,7 +67,7 @@ class PrescriptionQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {AppointmentTables.PRESCRIPTIONS} ({columns})
+            INSERT INTO {AppointmentTables.PRESCRIPTIONS.value} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -84,7 +84,7 @@ class PrescriptionQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {AppointmentTables.PRESCRIPTION_ITEMS} ({columns})
+            INSERT INTO {AppointmentTables.PRESCRIPTION_ITEMS.value} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -95,7 +95,7 @@ class PrescriptionQueryHelper:
     def delete_prescription(self, prescription_id):
         self.cur.execute(
             f"""
-            DELETE FROM {AppointmentTables.PRESCRIPTIONS} WHERE id = %s
+            DELETE FROM {AppointmentTables.PRESCRIPTIONS.value} WHERE id = %s
             RETURNING id
             """,
             (prescription_id,)
@@ -105,7 +105,7 @@ class PrescriptionQueryHelper:
     def delete_prescription_item(self, prescription_item_id):
         self.cur.execute(
             f"""
-            DELETE FROM {AppointmentTables.PRESCRIPTION_ITEMS} WHERE id = %s
+            DELETE FROM {AppointmentTables.PRESCRIPTION_ITEMS.value} WHERE id = %s
             RETURNING id
             """,
             (prescription_item_id,)

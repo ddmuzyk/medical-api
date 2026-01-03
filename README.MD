@@ -116,4 +116,4 @@ To populate the database with test data for development:
 docker exec -it flask_server python seed_database.py
 ```
 
-**Note:** Run this after the database is initialized. The script will output a summary of created accounts.
+**Note:** Run this after the database is initialized.

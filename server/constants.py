@@ -1,30 +1,21 @@
 from enum import Enum
-
-class StrEnum(str, Enum):
-    def __str__(self):
-        return self.value
-    
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.value == other
-        return super().__eq__(other)
-class UserRole(StrEnum):
+class UserRole(Enum):
     ADMIN = 'admin'
     USER = 'user'
     DOCTOR = 'doctor'
 
-class UserTables(StrEnum):
+class UserTables(Enum):
     USERS = 'users'
     PATIENTS = 'patients'
     DOCTORS = 'doctors'
 
-class AppointmentTables(StrEnum):
+class AppointmentTables(Enum):
     APPOINTMENTS = 'appointments'
     DOCTOR_AVAILABILITY = 'doctor_availability'
     PRESCRIPTIONS = 'prescriptions'
     PRESCRIPTION_ITEMS = 'prescription_items'
 
-class AppointmentStatus(StrEnum):
+class AppointmentStatus(Enum):
     SCHEDULED = 'scheduled'
     COMPLETED = 'completed'
     CANCELLED = 'cancelled'
@@ -43,12 +34,12 @@ specializations = {
     'GENERAL_MEDICINE': 'general_medicine'
 }
 
-class NotificationType(StrEnum):
+class NotificationType(Enum):
     APPOINTMENT_REMINDER = 'appointment_reminder'
     NEW_PRESCRIPTION = 'new_prescription'
     GENERAL_NOTIFICATION = 'general_notification'
 
-class ErrorMessages(StrEnum):
+class ErrorMessages(Enum):
     USER_EXISTS = 'User with this email already exists.'
     NO_USER_ID = 'No user ID provided.'
     USER_NOT_FOUND = 'User not found.'

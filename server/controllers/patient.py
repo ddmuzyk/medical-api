@@ -7,31 +7,31 @@ from middleware.auth import role_required, token_required
 bp = Blueprint('patient', __name__)
 
 @bp.get('/<int:patient_id>')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def get_patient(patient_id):
     if not patient_id:
-        return jsonify({"status": "error", "message": ErrorMessages["NO_USER_ID"]}), 400
+        return jsonify({"status": "error", "message": ErrorMessages.NO_USER_ID.value}), 400
     try:
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             patient = user_manager.get_patient(patient_id)
             if not patient:
-                return jsonify({"status": "error", "message": ErrorMessages["USER_NOT_FOUND"]}), 404
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
         return jsonify({"status": "success", "patient": patient}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.patch('/<int:patient_id>')
-@role_required(UserRole.ADMIN, UserRole.USER)
+@role_required(UserRole.ADMIN.value, UserRole.USER.value)
 def update_patient(patient_id):
     data = request.get_json() or {}
     if not patient_id:
-        return jsonify({"status": "error", "message": ErrorMessages["NO_USER_ID"]}), 400
+        return jsonify({"status": "error", "message": ErrorMessages.NO_USER_ID.value}), 400
     try:
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             patient = user_manager.get_patient(patient_id)
-            isAdmin = g.role == UserRole.ADMIN
+            isAdmin = g.role == UserRole.ADMIN.value
             isSelfModification = patient and patient['user_id'] == g.user_id
 
             if not isAdmin and not isSelfModification:

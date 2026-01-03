@@ -13,7 +13,7 @@ def create_admin(email, password, first_name, last_name):
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                role=UserRole.ADMIN
+                role=UserRole.ADMIN.value
             )
         print(f"✓ Admin user created successfully with ID: {user_id}")
         return user_id

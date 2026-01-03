@@ -8,7 +8,7 @@ from constants import UserRole
 bp = Blueprint('availability', __name__)
 
 @bp.post('/')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def create_doctor_availability():
     data = request.get_json() or {}
     try:
@@ -40,7 +40,7 @@ def get_doctor_availability(doctor_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.patch('/<int:availability_id>')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def update_doctor_availability(availability_id):
     data = request.get_json() or {}
     if not availability_id:
@@ -51,7 +51,7 @@ def update_doctor_availability(availability_id):
             appointment_manager = AppointmentQueryManager(cur)
             availability = appointment_manager.get_doctor_availability(availability_id)
             user = user_manager.get_doctor(availability['doctor_id']) if availability else None
-            isAdmin = g.role == UserRole.ADMIN
+            isAdmin = g.role == UserRole.ADMIN.value
             isSelfModification = user and user['user_id'] == g.user_id
 
             if not isAdmin and not isSelfModification:
@@ -63,7 +63,7 @@ def update_doctor_availability(availability_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.delete('/<int:availability_id>')
-@role_required(UserRole.ADMIN, UserRole.DOCTOR)
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def delete_doctor_availability(availability_id):
     if not availability_id:
         return jsonify({"status": "error", "message": "No availability ID provided"}), 400
