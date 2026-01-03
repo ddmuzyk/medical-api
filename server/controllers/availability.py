@@ -3,12 +3,12 @@ from queries.appointment import AppointmentQueryManager
 from queries.user import UserQueryManager
 from db_connection import DbPool
 from middleware.auth import role_required, token_required
-from constants import userRole
+from constants import UserRole
 
 bp = Blueprint('availability', __name__)
 
 @bp.post('/')
-@role_required(userRole['ADMIN'], userRole['DOCTOR'])
+@role_required(UserRole.ADMIN, UserRole.DOCTOR)
 def create_doctor_availability():
     data = request.get_json() or {}
     try:
@@ -16,7 +16,7 @@ def create_doctor_availability():
             user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
             user = user_manager.get_doctor(data.get('doctor_id'))
-            isAdmin = g.role == userRole['ADMIN']
+            isAdmin = g.role == UserRole['ADMIN']
 
             if not user or (not isAdmin and user['user_id'] != g.user_id):
                 return jsonify({"status": "error", "message": "Unauthorized to create availability for this doctor"}), 403
@@ -40,7 +40,7 @@ def get_doctor_availability(doctor_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.patch('/<int:availability_id>')
-@role_required(userRole['ADMIN'], userRole['DOCTOR'])
+@role_required(UserRole.ADMIN, UserRole.DOCTOR)
 def update_doctor_availability(availability_id):
     data = request.get_json() or {}
     if not availability_id:
@@ -51,7 +51,7 @@ def update_doctor_availability(availability_id):
             appointment_manager = AppointmentQueryManager(cur)
             availability = appointment_manager.get_doctor_availability(availability_id)
             user = user_manager.get_doctor(availability['doctor_id']) if availability else None
-            isAdmin = g.role == userRole['ADMIN']
+            isAdmin = g.role == UserRole.ADMIN
             isSelfModification = user and user['user_id'] == g.user_id
 
             if not isAdmin and not isSelfModification:
@@ -63,7 +63,7 @@ def update_doctor_availability(availability_id):
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.delete('/<int:availability_id>')
-@role_required(userRole['ADMIN'], userRole['DOCTOR'])
+@role_required(UserRole.ADMIN, UserRole.DOCTOR)
 def delete_doctor_availability(availability_id):
     if not availability_id:
         return jsonify({"status": "error", "message": "No availability ID provided"}), 400
@@ -72,7 +72,7 @@ def delete_doctor_availability(availability_id):
             appointment_manager = AppointmentQueryManager(cur)
             availability = appointment_manager.get_doctor_availability(availability_id)
             isSelfDeletion = availability and availability['doctor_id'] == g.user_id
-            isAdmin = g.role == userRole['ADMIN']
+            isAdmin = g.role == UserRole['ADMIN']
 
             if not availability or (not isAdmin and not isSelfDeletion):
                 return jsonify({"status": "error", "message": "Unauthorized to modify this availability"}), 403

@@ -1,4 +1,4 @@
-from constants import userRole, userTables, specializations
+from constants import UserRole, UserTables, specializations
 from utils.queries import create_placeholder_data, get_set_clause_and_values
 import datetime as dt
 import bcrypt
@@ -10,11 +10,10 @@ class PatientQueryHelper:
     def insert_patient(self, **patient_data):
         allowed_columns = {'user_id', 'first_name', 'last_name', 'pesel', 'phone'}
         columns, placeholders, values = create_placeholder_data(patient_data, allowed_columns)
-        print(patient_data, columns, placeholders, values)
 
         self.cur.execute(
             f"""
-            INSERT INTO {userTables['PATIENTS']} ({columns})
+            INSERT INTO {UserTables.PATIENTS} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -26,7 +25,7 @@ class PatientQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, pesel, phone
-            FROM {userTables['PATIENTS']} WHERE id = %s
+            FROM {UserTables.PATIENTS} WHERE id = %s
             """,
             (patient_id,)
         )
@@ -35,7 +34,7 @@ class PatientQueryHelper:
     def delete_patient_by_user_id(self, user_id):
         self.cur.execute(
             f"""
-            DELETE FROM {userTables['PATIENTS']} WHERE user_id = %s
+            DELETE FROM {UserTables.PATIENTS} WHERE user_id = %s
             RETURNING id
             """,
             (user_id,)
@@ -52,7 +51,7 @@ class PatientQueryHelper:
 
         self.cur.execute(
             f"""
-            UPDATE {userTables['PATIENTS']}
+            UPDATE {UserTables.PATIENTS}
             SET {set_clause_str}
             WHERE user_id = %s
             RETURNING id
@@ -75,7 +74,7 @@ class DoctorQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {userTables['DOCTORS']} ({columns})
+            INSERT INTO {UserTables.DOCTORS} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -87,7 +86,7 @@ class DoctorQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, specialization, license_number
-            FROM {userTables['DOCTORS']} WHERE id = %s
+            FROM {UserTables.DOCTORS} WHERE id = %s
             """,
             (doctor_id,)
         )
@@ -97,7 +96,7 @@ class DoctorQueryHelper:
         self.cur.execute(
             f"""
             SELECT id, user_id, first_name, last_name, specialization, license_number
-            FROM {userTables['DOCTORS']} WHERE specialization = %s
+            FROM {UserTables.DOCTORS} WHERE specialization = %s
             """,
             (specialization,)
         )
@@ -106,7 +105,7 @@ class DoctorQueryHelper:
     def delete_doctor_by_user_id(self, user_id):
         self.cur.execute(
             f"""
-            DELETE FROM {userTables['DOCTORS']} WHERE user_id = %s
+            DELETE FROM {UserTables.DOCTORS} WHERE user_id = %s
             RETURNING id
             """,
             (user_id,)
@@ -124,7 +123,7 @@ class DoctorQueryHelper:
 
         self.cur.execute(
             f"""
-            UPDATE {userTables['DOCTORS']}
+            UPDATE {UserTables.DOCTORS}
             SET {set_clause_str}
             WHERE user_id = %s
             RETURNING id
@@ -139,7 +138,7 @@ class UserQueryHelper:
     def insert_user(self, email, password_hash, role):
         self.cur.execute(
             f"""
-            INSERT INTO {userTables['USERS']} (email, password_hash, role, created_at)
+            INSERT INTO {UserTables.USERS} (email, password_hash, role, created_at)
             VALUES (%s, %s, %s, %s)
             RETURNING id
             """,
@@ -150,7 +149,7 @@ class UserQueryHelper:
     def get_user_by_id(self, user_id):
         self.cur.execute(
             f"""
-            SELECT id, email, role, created_at FROM {userTables['USERS']} WHERE id = %s
+            SELECT id, email, role, created_at FROM {UserTables.USERS} WHERE id = %s
             """,
             (user_id,)
         )
@@ -159,7 +158,7 @@ class UserQueryHelper:
     def get_user_by_email(self, email):
         self.cur.execute(
             f"""
-            SELECT id, email, password_hash, role, created_at FROM {userTables['USERS']} WHERE email = %s
+            SELECT id, email, password_hash, role, created_at FROM {UserTables.USERS} WHERE email = %s
             """,
             (email,)
         )
@@ -172,7 +171,7 @@ class UserQueryHelper:
 
         self.cur.execute(
             f"""
-            UPDATE {userTables['USERS']}
+            UPDATE {UserTables.USERS}
             SET {set_clause_str}
             WHERE id = %s
             RETURNING id
@@ -184,7 +183,7 @@ class UserQueryHelper:
     def delete_user(self, user_id):
         self.cur.execute(
             f"""
-            DELETE FROM {userTables['USERS']} WHERE id = %s
+            DELETE FROM {UserTables.USERS} WHERE id = %s
             RETURNING id
             """,
             (user_id,)
@@ -209,7 +208,7 @@ class UserQueryManager:
             role=user_data['role']
         )
 
-        if user_data['role'] == userRole['USER']:
+        if user_data['role'] == UserRole.USER:
             self.patient.insert_patient(
                 user_id=user_id,
                 first_name=user_data.get('first_name'),
@@ -218,7 +217,7 @@ class UserQueryManager:
                 phone=user_data.get('phone')
             )
 
-        elif user_data['role'] == userRole['DOCTOR']:
+        elif user_data['role'] == UserRole.DOCTOR:
             self.doctor.insert_doctor(
                 user_id=user_id,
                 first_name=user_data.get('first_name'),
@@ -260,9 +259,9 @@ class UserQueryManager:
 
         role = user_record['role']
 
-        if role == userRole['USER']:
+        if role == UserRole.USER:
             self.patient.delete_patient_by_user_id(user_id)
-        elif role == userRole['DOCTOR']:
+        elif role == UserRole.DOCTOR:
             self.doctor.delete_doctor_by_user_id(user_id)
 
         deleted_user_id = self.user.delete_user(user_id)

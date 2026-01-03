@@ -1,5 +1,5 @@
 from utils.queries import create_placeholder_data
-from constants import appointmentTables, appointmentStatus
+from constants import AppointmentTables, AppointmentStatus
 import datetime as dt
 
 class AppointmentQueryHelper:
@@ -15,7 +15,7 @@ class AppointmentQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {appointmentTables['APPOINTMENTS']} ({columns})
+            INSERT INTO {AppointmentTables.APPOINTMENTS} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -31,7 +31,7 @@ class AppointmentQueryHelper:
         
         self.cur.execute(
             f"""
-            UPDATE {appointmentTables['APPOINTMENTS']}
+            UPDATE {AppointmentTables.APPOINTMENTS}
             SET status = %s
             WHERE id = %s
             RETURNING id
@@ -43,7 +43,7 @@ class AppointmentQueryHelper:
     def get_appointment(self, appointment_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {appointmentTables['APPOINTMENTS']}
+            SELECT * FROM {AppointmentTables.APPOINTMENTS}
             WHERE id = %s
             """,
             (appointment_id,)
@@ -53,7 +53,7 @@ class AppointmentQueryHelper:
     def get_appointments_by_patient(self, patient_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {appointmentTables['APPOINTMENTS']}
+            SELECT * FROM {AppointmentTables.APPOINTMENTS}
             WHERE patient_id = %s
             ORDER BY appointment_date DESC
             """,
@@ -64,7 +64,7 @@ class AppointmentQueryHelper:
     def get_appointments_by_doctor(self, doctor_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {appointmentTables['APPOINTMENTS']}
+            SELECT * FROM {AppointmentTables.APPOINTMENTS}
             WHERE doctor_id = %s
             ORDER BY appointment_date DESC
             """,
@@ -75,7 +75,7 @@ class AppointmentQueryHelper:
     def delete_appointment(self, appointment_id):
         self.cur.execute(
             f"""
-            DELETE FROM {appointmentTables['APPOINTMENTS']} WHERE id = %s
+            DELETE FROM {AppointmentTables.APPOINTMENTS} WHERE id = %s
             RETURNING id
             """,
             (appointment_id,)
@@ -96,7 +96,7 @@ class AvailabilityQueryHelper:
         
         self.cur.execute(
             f"""
-            SELECT 1 FROM {appointmentTables['DOCTOR_AVAILABILITY']}
+            SELECT 1 FROM {AppointmentTables.DOCTOR_AVAILABILITY}
             WHERE doctor_id = %s AND
                   ((start_time, end_time) OVERLAPS (%s, %s))
             """,
@@ -110,7 +110,7 @@ class AvailabilityQueryHelper:
 
         self.cur.execute(
             f"""
-            INSERT INTO {appointmentTables['DOCTOR_AVAILABILITY']} ({columns})
+            INSERT INTO {AppointmentTables.DOCTOR_AVAILABILITY} ({columns})
             VALUES ({placeholders})
             RETURNING id
             """,
@@ -128,7 +128,7 @@ class AvailabilityQueryHelper:
         
         self.cur.execute(
             f"""
-            UPDATE {appointmentTables['DOCTOR_AVAILABILITY']}
+            UPDATE {AppointmentTables.DOCTOR_AVAILABILITY}
             SET is_available = %s
             WHERE id = %s
             RETURNING id
@@ -140,7 +140,7 @@ class AvailabilityQueryHelper:
     def get_doctor_availability(self, doctor_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {appointmentTables['DOCTOR_AVAILABILITY']}
+            SELECT * FROM {AppointmentTables.DOCTOR_AVAILABILITY}
             WHERE doctor_id = %s AND is_available = TRUE
             ORDER BY start_time
             """,
@@ -151,7 +151,7 @@ class AvailabilityQueryHelper:
     def get_availability_by_id(self, availability_id):
         self.cur.execute(
             f"""
-            SELECT * FROM {appointmentTables['DOCTOR_AVAILABILITY']}
+            SELECT * FROM {AppointmentTables.DOCTOR_AVAILABILITY}
             WHERE id = %s
             """,
             (availability_id,)
@@ -161,7 +161,7 @@ class AvailabilityQueryHelper:
     def delete_doctor_availability(self, availability_id):
         self.cur.execute(
             f"""
-            DELETE FROM {appointmentTables['DOCTOR_AVAILABILITY']} WHERE id = %s
+            DELETE FROM {AppointmentTables.DOCTOR_AVAILABILITY} WHERE id = %s
             RETURNING id
             """,
             (availability_id,)
@@ -193,7 +193,7 @@ class AppointmentQueryManager:
             raise ValueError(f"Availability with id {appointment_data.get('availability_id')} does not exist")
         
         appointment_data.update({
-            "status": appointmentStatus['SCHEDULED'],
+            "status": AppointmentStatus['SCHEDULED'],
             "appointment_date": availability['start_time']
         })
         
@@ -224,10 +224,10 @@ class AppointmentQueryManager:
         return self.availability.delete_doctor_availability(availability_id)
     
     def cancel_appointment(self, appointment_id):
-        return self.appointment.update_appointment_status(appointment_id=appointment_id, status=appointmentStatus['CANCELLED'])
+        return self.appointment.update_appointment_status(appointment_id=appointment_id, status=AppointmentStatus['CANCELLED'])
     
     def complete_appointment(self, appointment_id):
-        return self.appointment.update_appointment_status(appointment_id=appointment_id, status=appointmentStatus['COMPLETED'])
+        return self.appointment.update_appointment_status(appointment_id=appointment_id, status=AppointmentStatus['COMPLETED'])
     
     def delete_appointment(self, appointment_id):
         return self.appointment.delete_appointment(appointment_id)

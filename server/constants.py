@@ -1,27 +1,24 @@
-userRole = {
-    'ADMIN': 'admin',
-    'USER': 'user',
-    'DOCTOR': 'doctor'
-}
+from enum import Enum
+class UserRole(Enum):
+    ADMIN = 'admin'
+    USER = 'user'
+    DOCTOR = 'doctor'
 
-userTables = {
-    'USERS': 'users',
-    'PATIENTS': 'patients',
-    'DOCTORS': 'doctors'
-}
+class UserTables(Enum):
+    USERS = 'users'
+    PATIENTS = 'patients'
+    DOCTORS = 'doctors'
 
-appointmentTables = {
-    'APPOINTMENTS': 'appointments',
-    'DOCTOR_AVAILABILITY': 'doctor_availability',
-    'PRESCRIPTIONS': 'prescriptions',
-    'PRESCRIPTION_ITEMS': 'prescription_items'
-}
+class AppointmentTables(Enum):
+    APPOINTMENTS = 'appointments'
+    DOCTOR_AVAILABILITY = 'doctor_availability'
+    PRESCRIPTIONS = 'prescriptions'
+    PRESCRIPTION_ITEMS = 'prescription_items'
 
-appointmentStatus = {
-    'SCHEDULED': 'scheduled',
-    'COMPLETED': 'completed',
-    'CANCELLED': 'cancelled',
-}
+class AppointmentStatus(Enum):
+    SCHEDULED = 'scheduled'
+    COMPLETED = 'completed'
+    CANCELLED = 'cancelled'
 
 specializations = {
     'CARDIOLOGY': 'cardiology',
@@ -37,8 +34,12 @@ specializations = {
     'GENERAL_MEDICINE': 'general_medicine'
 }
 
-errorMessages = {
-    'USER_EXISTS': 'User with this email already exists.',
-    'NO_USER_ID': 'No user ID provided.',
-    'USER_NOT_FOUND': 'User not found.'
-}
+class NotificationType(Enum):
+    APPOINTMENT_REMINDER = 'appointment_reminder'
+    NEW_PRESCRIPTION = 'new_prescription'
+    GENERAL_NOTIFICATION = 'general_notification'
+
+class ErrorMessages(Enum):
+    USER_EXISTS = 'User with this email already exists.'
+    NO_USER_ID = 'No user ID provided.'
+    USER_NOT_FOUND = 'User not found.'
