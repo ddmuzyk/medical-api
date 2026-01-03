@@ -8,6 +8,17 @@ from constants import UserRole
 
 bp = Blueprint('user', __name__)
 
+@bp.get('/pending')
+@role_required(UserRole.ADMIN)
+def get_pending_users():
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            pending_users = user_manager.get_pending_users()
+        return jsonify({"status": "success", "pending_users": pending_users}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @bp.post('/register')
 def register_user():
     data = request.get_json() or {}
@@ -55,6 +66,22 @@ def update_user(user_id):
 
             updated_user_id = user_manager.update_user(user_id=user_id, **data)
         return jsonify({"status": "success", "updated_user_id": updated_user_id}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.patch('/<int:user_id>/activate')
+@role_required(UserRole.ADMIN)
+def activate_user(user_id):
+    """Admin activates pending doctor accounts"""
+    if not user_id:
+        return jsonify({"status": "error", "message": ErrorMessages["NO_USER_ID"]}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            activated_user_id = user_manager.activate_user(user_id)
+            if not activated_user_id:
+                return jsonify({"status": "error", "message": ErrorMessages["USER_NOT_FOUND"]}), 404
+        return jsonify({"status": "success", "activated_user_id": activated_user_id}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

@@ -40,7 +40,7 @@ class DbPool:
         cur = None
         try:
             conn = cls.getconn()
-            cur = conn.cursor(cursor_factory=RealDictCursor)  # Add this
+            cur = conn.cursor(cursor_factory=RealDictCursor)
             yield cur
             if commit:
                 conn.commit() 

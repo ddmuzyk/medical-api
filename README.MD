@@ -107,3 +107,13 @@ docker exec -it flask_server python create_admin.py admin@hospital.com Admin123!
 ```
 
 **Note:** Only admins can create doctor accounts and other admins through the API. Regular users can self-register.
+
+## Seeding Test Data
+
+To populate the database with test data for development:
+
+```bash
+docker exec -it flask_server python seed_database.py
+```
+
+**Note:** Run this after the database is initialized. The script will output a summary of created accounts.

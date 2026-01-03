@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from queries.user import UserQueryManager
 from constants import ErrorMessages, specializations, UserRole
 from db_connection import DbPool
-from middleware.auth import role_required, token_required
+from middleware.auth import role_required
 
 bp = Blueprint('doctor', __name__)
 

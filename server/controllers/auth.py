@@ -39,6 +39,11 @@ def login():
                     "message": "Invalid credentials"
                 }), 401
             
+            if not user['is_active']:
+                return jsonify({
+                    "status": "error", 
+                    "message": "User account is inactive"
+                }), 403
 
             token = AuthService.create_session(user_id, role, expiry_hours=24)
             

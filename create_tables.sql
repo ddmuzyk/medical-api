@@ -3,6 +3,7 @@ CREATE TABLE users (
   "email" varchar UNIQUE NOT NULL,
   "password_hash" varchar NOT NULL,
   "role" varchar NOT NULL,
+  "is_active" boolean DEFAULT true,
   "created_at" timestamp
 );
 
