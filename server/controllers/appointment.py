@@ -14,8 +14,20 @@ def create_appointment():
     
     try:
         with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
-            appointment_id = appointment_manager.create_appointment(**data)  
+
+            if g.role == UserRole.USER.value:
+                patient = user_manager.get_patient(data.get('patient_id'))
+                if patient['user_id'] != g.user_id:
+                    return jsonify({"status": "error", "message": "Unauthorized"}), 403
+            elif g.role == UserRole.DOCTOR.value:
+                doctor = user_manager.get_doctor(data.get('doctor_id'))
+                if doctor['user_id'] != g.user_id:
+                    return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            appointment_id = appointment_manager.create_appointment(**data)
+
         return jsonify({"status": "success", "appointment_id": appointment_id}), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -32,7 +44,7 @@ def get_appointment(appointment_id):
 
             if g.role == UserRole.USER.value and appointment['patient_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
-            if g.role == UserRole.DOCTOR.value and appointment['doctor_id'] != g.user_id:
+            elif g.role == UserRole.DOCTOR.value and appointment['doctor_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
             if not appointment:

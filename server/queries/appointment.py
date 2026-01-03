@@ -192,6 +192,9 @@ class AppointmentQueryManager:
         if not availability:
             raise ValueError(f"Availability with id {appointment_data.get('availability_id')} does not exist")
         
+        if not availability['is_available']:
+            raise ValueError("The selected availability slot is not available")
+        
         appointment_data.update({
             "status": AppointmentStatus.SCHEDULED.value,
             "appointment_date": availability['start_time']
