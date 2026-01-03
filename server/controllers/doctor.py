@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from queries.user import UserQueryManager
-from constants import errorMessages
+from constants import errorMessages, specializations, userRole
 from db_connection import DbPool
-from psycopg2 import errors
+from middleware.auth import role_required, token_required
 
 bp = Blueprint('doctor', __name__)
 
@@ -20,7 +20,27 @@ def get_doctor(doctor_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
+@bp.get('/specializations')
+def get_all_specializations():
+    try:
+        return jsonify({"status": "success", "specializations": list(specializations.values())}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.get('/specializations/<string:specialization>')
+def get_doctors_by_specialization(specialization):
+    if not specialization:
+        return jsonify({"status": "error", "message": "No specialization provided"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            doctors = user_manager.get_doctors_by_specialization(specialization)
+        return jsonify({"status": "success", "doctors": doctors}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
 @bp.patch('/<int:doctor_id>')
+@role_required(userRole['ADMIN'], userRole['DOCTOR'])
 def update_doctor(doctor_id):
     data = request.get_json() or {}
     if not doctor_id:

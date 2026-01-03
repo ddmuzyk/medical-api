@@ -28,12 +28,12 @@ specializations = {
     'DERMATOLOGY': 'dermatology',
     'NEUROLOGY': 'neurology',
     'PEDIATRICS': 'pediatrics',
-    'OCULIST': 'oculist',
+    'OPHTHALMOLOGY': 'ophthalmology',
     'ORTHOPEDICS': 'orthopedics',
     'PSYCHIATRY': 'psychiatry',
+    'RHEUMATOLOGY': 'rheumatology',
     'GYNECOLOGY': 'gynecology',
     "ONCOLOGY": 'oncology',
-    'ENT': 'ear_nose_throat',
     'GENERAL_MEDICINE': 'general_medicine'
 }
 

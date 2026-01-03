@@ -93,6 +93,16 @@ class DoctorQueryHelper:
         )
         return self.cur.fetchone()
     
+    def get_doctors_by_specialization(self, specialization):
+        self.cur.execute(
+            f"""
+            SELECT id, user_id, first_name, last_name, specialization, license_number
+            FROM {userTables['DOCTORS']} WHERE specialization = %s
+            """,
+            (specialization,)
+        )
+        return self.cur.fetchall()
+    
     def delete_doctor_by_user_id(self, user_id):
         self.cur.execute(
             f"""
@@ -230,6 +240,9 @@ class UserQueryManager:
     
     def get_doctor(self, doctor_id):
         return self.doctor.get_doctor(doctor_id)
+    
+    def get_doctors_by_specialization(self, specialization):
+        return self.doctor.get_doctors_by_specialization(specialization)
     
     def update_user(self, **user_data):
         return self.user.update_user(**user_data)
