@@ -1,6 +1,6 @@
 from db_connection import DbPool
 from queries.user import UserQueryManager
-from constants import userRole
+from constants import UserRole
 import sys
 
 def create_admin(email, password, first_name, last_name):
@@ -13,7 +13,7 @@ def create_admin(email, password, first_name, last_name):
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                role=userRole['ADMIN']
+                role=UserRole.ADMIN
             )
         print(f"✓ Admin user created successfully with ID: {user_id}")
         return user_id

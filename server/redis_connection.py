@@ -18,10 +18,9 @@ class RedisClient:
                 port=int(os.getenv('REDIS_PORT', 6379)),
                 db=int(os.getenv('REDIS_DB', 0)),
                 password=redis_password if redis_password else None,
-                decode_responses=True  # This makes it return strings, not bytes
+                decode_responses=True
             )
-            
-            # Test connection
+
             try:
                 cls._client.ping()
                 print("✓ Redis connected successfully")

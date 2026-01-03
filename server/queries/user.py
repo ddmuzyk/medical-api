@@ -197,6 +197,7 @@ class UserQueryManager:
         self.patient = PatientQueryHelper(cursor)
         self.doctor = DoctorQueryHelper(cursor)
 
+
     def register_user(self, **user_data):
         if not user_data.get('email') or not user_data.get('password') or not user_data.get('role'):
             raise ValueError("Email, password, and role are required")
