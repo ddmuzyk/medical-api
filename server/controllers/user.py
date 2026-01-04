@@ -18,6 +18,50 @@ def get_pending_users():
         return jsonify({"status": "success", "pending_users": pending_users}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.get('/patient/<int:user_id>')
+@role_required(UserRole.ADMIN.value, UserRole.USER.value)
+def get_patient(user_id):
+    if not user_id:
+        return jsonify({"status": "error", "message": ErrorMessages.NO_USER_ID.value}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            patient = user_manager.get_patient_by_user_id(user_id)
+            if not patient:
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+
+            if g.role == UserRole.USER.value and patient['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            if not patient:
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+        return jsonify({"status": "success", "patient": patient}), 200
+    except errors.NoDataFound:
+        return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.get('/doctor/<int:user_id>')
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
+def get_doctor(user_id):
+    if not user_id:
+        return jsonify({"status": "error", "message": ErrorMessages.NO_USER_ID.value}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            doctor = user_manager.get_doctor_by_user_id(user_id)
+            if not doctor:
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+
+            if g.role == UserRole.DOCTOR.value and doctor['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            if not doctor:
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+        return jsonify({"status": "success", "doctor": doctor}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @bp.post('/register')
 def register_user():

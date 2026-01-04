@@ -46,13 +46,28 @@ def login():
                 }), 403
 
             token = AuthService.create_session(user_id, role, expiry_hours=24)
-            
-        return jsonify({
+
+            role_specific_id = None
+            if role == 'doctor':
+                doctor = user_manager.get_doctor_by_user_id(user_id)
+                role_specific_id = doctor['id'] if doctor else None
+            elif role == 'user':
+                patient = user_manager.get_patient_by_user_id(user_id)
+                role_specific_id = patient['id'] if patient else None
+
+        response = {
             "status": "success",
             "token": token,
             "user_id": user_id,
             "role": role
-        }), 200
+        }
+        
+        if role == 'doctor' and role_specific_id:
+            response['doctor_id'] = role_specific_id
+        elif role == 'user' and role_specific_id:
+            response['patient_id'] = role_specific_id
+            
+        return jsonify(response), 200
         
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
