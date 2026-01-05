@@ -35,7 +35,7 @@ def create_appointment():
                 NotificationService.notify_appointment_created(
                     cur,
                     user_id=patient['user_id'],
-                    doctor_name=doctor['name'],
+                    doctor_name=doctor['last_name'],
                     appointment_date=appointment['appointment_date']
                 )
 
@@ -161,7 +161,7 @@ def change_appointment_status(appointment_id):
                 NotificationService.notify_appointment_status_changed(
                     cur,
                     user_id=patient['user_id'],
-                    doctor_name=doctor['name'],
+                    doctor_name=doctor['last_name'],
                     status=data.get('status')
                 )
         return jsonify({"status": "success", "updated_appointment_id": updated_appointment_id}), 200
@@ -192,7 +192,7 @@ def complete_appointment(appointment_id):
                 NotificationService.notify_appointment_status_changed(
                     cur,
                     user_id=patient['user_id'],
-                    doctor_name=doctor['name'],
+                    doctor_name=doctor['last_name'],
                     status=AppointmentStatus.COMPLETED.value
                 )
         return jsonify({"status": "success", "completed_appointment_id": completed_appointment_id}), 200
@@ -223,7 +223,7 @@ def cancel_appointment(appointment_id):
                 NotificationService.notify_appointment_status_changed(
                     cur,
                     user_id=patient['user_id'],
-                    doctor_name=doctor['name'],
+                    doctor_name=doctor['last_name'],
                     status=AppointmentStatus.CANCELLED.value
                 )
         return jsonify({"status": "success", "cancelled_appointment_id": cancelled_appointment_id}), 200

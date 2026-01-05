@@ -97,6 +97,16 @@ class AppointmentQueryHelper:
         )
         return self.cur.fetchall()
     
+    def get_appointment_by_availability(self, availability_id):
+        self.cur.execute(
+            f"""
+            SELECT * FROM {AppointmentTables.APPOINTMENTS.value}
+            WHERE availability_id = %s
+            """,
+            (availability_id,)
+        )
+        return self.cur.fetchone()
+    
     def delete_appointment(self, appointment_id):
         self.cur.execute(
             f"""
@@ -277,6 +287,9 @@ class AppointmentQueryManager:
     
     def get_appointments_by_doctor(self, doctor_id):
         return self.appointment.get_appointments_by_doctor(doctor_id)
+    
+    def get_appointment_by_availability(self, availability_id):
+        return self.appointment.get_appointment_by_availability(availability_id)
     
     def get_availabilities_by_specialization_and_date(self, specialization, date):
         return self.availability.get_availabilities_by_specialization_and_date(specialization, date)

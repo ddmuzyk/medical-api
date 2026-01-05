@@ -25,7 +25,7 @@ def create_prescription():
                 NotificationService.notify_prescription_created(
                     cur,
                     user_id=patient['user_id'],
-                    doctor_name=doctor['name']
+                    doctor_name=doctor['last_name']
                 )
         return jsonify({"status": "success", "prescription_id": prescription_id}), 201
     except Exception as e:
