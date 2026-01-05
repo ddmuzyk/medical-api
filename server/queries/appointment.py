@@ -1,5 +1,5 @@
 from utils.queries import create_placeholder_data
-from constants import AppointmentTables, AppointmentStatus
+from constants import AppointmentTables, AppointmentStatus, UserTables
 import datetime as dt
 
 class AppointmentQueryHelper:
@@ -173,6 +173,30 @@ class AvailabilityQueryHelper:
         )
         return self.cur.fetchall()
     
+    def get_availabilities_by_specialization_and_date(self, specialization, date):
+        self.cur.execute(
+            f"""
+            SELECT 
+            da.id,
+            da.doctor_id,
+            da.start_time,
+            da.end_time,
+            da.is_available,
+            d.first_name,
+            d.last_name,
+            d.specialization,
+            d.license_number 
+            FROM {AppointmentTables.DOCTOR_AVAILABILITY.value} da
+            JOIN {UserTables.DOCTORS.value} d ON da.doctor_id = d.id
+            WHERE d.specialization = %s
+              AND DATE(da.start_time) = %s
+              AND da.is_available = TRUE
+            ORDER BY da.start_time
+            """,
+            (specialization, date)
+        )
+        return self.cur.fetchall()
+    
     def get_availability_by_id(self, availability_id):
         self.cur.execute(
             f"""
@@ -247,6 +271,9 @@ class AppointmentQueryManager:
     
     def get_appointments_by_doctor(self, doctor_id):
         return self.appointment.get_appointments_by_doctor(doctor_id)
+    
+    def get_availabilities_by_specialization_and_date(self, specialization, date):
+        return self.availability.get_availabilities_by_specialization_and_date(specialization, date)
     
     def change_appointment_status(self, **appointment_data):
         return self.appointment.update_appointment_status(**appointment_data)

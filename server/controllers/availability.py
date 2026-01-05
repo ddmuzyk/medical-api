@@ -37,6 +37,22 @@ def get_doctor_availability(doctor_id):
             availability = appointment_manager.get_doctor_availability(doctor_id)
         return jsonify({"status": "success", "availability": availability}), 200
     except Exception as e:
+        print(e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.get('/')
+@token_required
+def get_availabilities_by_specialization_and_date():
+    specialization = request.args.get('specialization')
+    date = request.args.get('date')
+    if not specialization or not date:
+        return jsonify({"status": "error", "message": "Specialization and date are required"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            appointment_manager = AppointmentQueryManager(cur)
+            availabilities = appointment_manager.get_availabilities_by_specialization_and_date(specialization, date)
+        return jsonify({"status": "success", "availabilities": availabilities}), 200
+    except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @bp.patch('/<int:availability_id>')
