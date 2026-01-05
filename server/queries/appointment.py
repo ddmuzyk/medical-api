@@ -25,8 +25,6 @@ class AppointmentQueryHelper:
     
     def update_appointment_status(self, **appointment_data):
         status, appointment_id = appointment_data.get('status'), appointment_data.get('appointment_id')
-        if appointment_data.get('status') not in AppointmentStatus:
-            raise ValueError("Invalid status value")
         
         self.cur.execute(
             f"""
@@ -306,14 +304,10 @@ class AppointmentQueryManager:
         return self.availability.delete_doctor_availability(availability_id)
     
     def cancel_appointment(self, appointment_id):
-        appointment_id = self.appointment.update_appointment_status(
+        return self.appointment.update_appointment_status(
             appointment_id=appointment_id, 
             status=AppointmentStatus.CANCELLED.value
         )
-        appointment = self.get_appointment(appointment_id)
-        if appointment:
-            self.set_availability_available(appointment['availability_id'])
-        return appointment_id
     
     def complete_appointment(self, appointment_id):
         return self.appointment.update_appointment_status(appointment_id=appointment_id, status=AppointmentStatus.COMPLETED.value)

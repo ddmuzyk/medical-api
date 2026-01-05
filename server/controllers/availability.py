@@ -87,7 +87,11 @@ def update_doctor_availability(availability_id):
             user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
             availability = appointment_manager.get_availability_by_id(availability_id)
-            user = user_manager.get_doctor(availability['doctor_id']) if availability else None
+
+            if not availability:
+                return jsonify({"status": "error", "message": "Availability not found"}), 404
+
+            user = user_manager.get_doctor(availability['doctor_id'])
             isAdmin = g.role == UserRole.ADMIN.value
             isSelfModification = user and user['user_id'] == g.user_id
 
@@ -112,9 +116,7 @@ def update_doctor_availability(availability_id):
                     )
 
             updated_availability_id = appointment_manager.change_doctor_availability(availability_id=availability_id, **data)
-        return jsonify({"status": "success", "updated_availability_id": updated_availability_id, 
-                        "is_available": is_available
-                        }), 200
+        return jsonify({"status": "success", "updated_availability_id": updated_availability_id}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
@@ -125,12 +127,18 @@ def delete_doctor_availability(availability_id):
         return jsonify({"status": "error", "message": "No availability ID provided"}), 400
     try:
         with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
-            availability = appointment_manager.get_doctor_availability(availability_id)
-            isSelfDeletion = availability and availability['doctor_id'] == g.user_id
-            isAdmin = g.role == UserRole['ADMIN']
+            availability = appointment_manager.get_availability_by_id(availability_id)
 
-            if not availability or (not isAdmin and not isSelfDeletion):
+            if not availability:
+                return jsonify({"status": "error", "message": "Availability not found"}), 404
+
+            doctor = user_manager.get_doctor(availability['doctor_id'])
+            isAdmin = g.role == UserRole.ADMIN.value
+            isSelfDeletion = doctor['user_id'] == g.user_id
+
+            if not isAdmin and not isSelfDeletion:
                 return jsonify({"status": "error", "message": "Unauthorized to modify this availability"}), 403
             
             appointment = appointment_manager.get_appointment_by_availability(availability_id)
@@ -151,4 +159,4 @@ def delete_doctor_availability(availability_id):
                 return jsonify({"status": "error", "message": "Availability not found"}), 404
         return jsonify({"status": "success", "deleted_availability": deleted_availability}), 200
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e), "appointment": appointment}), 500

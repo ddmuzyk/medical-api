@@ -206,13 +206,18 @@ def cancel_appointment(appointment_id):
         return jsonify({"status": "error", "message": "No appointment ID provided"}), 400
     try:
         with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
             appointment = appointment_manager.get_appointment(appointment_id)
 
             if g.role == UserRole.USER.value and appointment['patient_id'] != g.user_id:
-                return jsonify({"status": "error", "message": "Unauthorized"}), 403
-            elif g.role == UserRole.DOCTOR.value and appointment['doctor_id'] != g.user_id:
-                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+                patient = user_manager.get_patient(appointment['patient_id'])
+                if patient['user_id'] != g.user_id:
+                    return jsonify({"status": "error", "message": "Unauthorized"}), 403
+            elif g.role == UserRole.DOCTOR.value:
+                doctor = user_manager.get_doctor(appointment['doctor_id'])
+                if doctor['user_id'] != g.user_id:
+                    return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
             cancelled_appointment_id = appointment_manager.cancel_appointment(appointment_id)
 
