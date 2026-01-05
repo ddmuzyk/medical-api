@@ -34,6 +34,8 @@ specializations = {
     'GENERAL_MEDICINE': 'general_medicine'
 }
 
+NOTIFICATION_TABLE = 'notifications'
+
 class NotificationType(Enum):
     APPOINTMENT_REMINDER = 'appointment_reminder'
     NEW_PRESCRIPTION = 'new_prescription'
