@@ -93,6 +93,23 @@ def update_doctor_availability(availability_id):
 
             if not isAdmin and not isSelfModification:
                 return jsonify({"status": "error", "message": "Unauthorized to modify this availability"}), 403
+            
+            is_available = data.get('is_available')
+            if is_available is None:
+                return jsonify({"status": "error", "message": "is_available field is required"}), 400
+            
+            if not is_available:
+                appointment = appointment_manager.get_appointment_by_availability(availability_id)
+                if appointment:
+                    appointment_manager.cancel_appointment(appointment['id'])
+                    user_id = user_manager.get_patient(appointment['patient_id'])['user_id']
+                    doctor_name = user_manager.get_doctor(appointment['doctor_id'])['last_name']
+                    NotificationService.notify_appointment_status_changed(
+                        cur,
+                        user_id=user_id,
+                        doctor_name=doctor_name,
+                        status=AppointmentStatus.CANCELLED.value
+                    )
 
             updated_availability_id = appointment_manager.change_doctor_availability(availability_id=availability_id, **data)
         return jsonify({"status": "success", "updated_availability_id": updated_availability_id}), 200
@@ -119,7 +136,7 @@ def delete_doctor_availability(availability_id):
                 appointment_manager.cancel_appointment(appointment['id'])
                 user_manager = UserQueryManager(cur)
                 user_id = user_manager.get_patient(appointment['patient_id'])['user_id']
-                doctor_name = user_manager.get_doctor(appointment['doctor_id'])['first_name']
+                doctor_name = user_manager.get_doctor(appointment['doctor_id'])['last_name']
                 NotificationService.notify_appointment_status_changed(
                     cur,
                     user_id=user_id,
