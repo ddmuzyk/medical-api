@@ -61,13 +61,13 @@ def get_availabilities_by_specialization_and_date():
                     "availability_id": a['availability_id'],
                     "start_time": str(a['start_time']),
                     "end_time": str(a['end_time']),
+                    "is_available": a['is_available'],
                     "doctor": {
                         "doctor_id": a['doctor_id'],
                         "first_name": a['first_name'],
                         "last_name": a['last_name'],
                         "specialization": a['specialization'],
                         "license_number": a['license_number'],
-                        "is_available": a['is_available']
                     }
                 }
                 for a in availabilities
