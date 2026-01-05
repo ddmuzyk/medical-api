@@ -86,13 +86,13 @@ def update_doctor_availability(availability_id):
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
-            availability = appointment_manager.get_doctor_availability(availability_id)
+            availability = appointment_manager.get_availability_by_id(availability_id)
             user = user_manager.get_doctor(availability['doctor_id']) if availability else None
             isAdmin = g.role == UserRole.ADMIN.value
             isSelfModification = user and user['user_id'] == g.user_id
 
             if not isAdmin and not isSelfModification:
-                return jsonify({"status": "error", "message": "Unauthorized to modify this availability"}), 403
+                return jsonify({"status": "error", "message": "Unauthorized to modify this availability" }), 403
             
             is_available = data.get('is_available')
             if is_available is None:
@@ -112,7 +112,9 @@ def update_doctor_availability(availability_id):
                     )
 
             updated_availability_id = appointment_manager.change_doctor_availability(availability_id=availability_id, **data)
-        return jsonify({"status": "success", "updated_availability_id": updated_availability_id}), 200
+        return jsonify({"status": "success", "updated_availability_id": updated_availability_id, 
+                        "is_available": is_available
+                        }), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
