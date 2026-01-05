@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from queries.user import UserQueryManager
 from constants import ErrorMessages, specializations, UserRole
 from db_connection import DbPool
-from middleware.auth import role_required
+from middleware.auth import role_required, token_required
 
 bp = Blueprint('doctor', __name__)
 
@@ -35,6 +35,19 @@ def get_doctors_by_specialization(specialization):
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             doctors = user_manager.get_doctors_by_specialization(specialization)
+        return jsonify({"status": "success", "doctors": doctors}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.get('/<string:name_query>')
+@token_required
+def search_doctors_by_name(name_query):
+    if not name_query:
+        return jsonify({"status": "error", "message": "No name query provided"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            doctors = user_manager.get_doctors_by_name(name_query)
         return jsonify({"status": "success", "doctors": doctors}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

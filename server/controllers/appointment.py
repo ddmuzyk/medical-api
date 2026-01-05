@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from queries.appointment import AppointmentQueryManager
 from queries.user import UserQueryManager
 from db_connection import DbPool
-from constants import UserRole
+from constants import UserRole, AppointmentStatus
 from middleware.auth import role_required, token_required
 from services.notification_service import NotificationService
 
@@ -165,6 +165,68 @@ def change_appointment_status(appointment_id):
                     status=data.get('status')
                 )
         return jsonify({"status": "success", "updated_appointment_id": updated_appointment_id}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.patch('/<int:appointment_id>/complete')
+@role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
+def complete_appointment(appointment_id):
+    if not appointment_id:
+        return jsonify({"status": "error", "message": "No appointment ID provided"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            appointment_manager = AppointmentQueryManager(cur)
+            appointment = appointment_manager.get_appointment(appointment_id)
+            isAdmin = g.role == UserRole.ADMIN.value
+            isSelfModification = appointment and appointment['doctor_id'] == g.user_id
+
+            if not isAdmin and not isSelfModification:
+                return jsonify({"status": "error", "message": "Unauthorized to modify this appointment"}), 403
+
+            completed_appointment_id = appointment_manager.complete_appointment(appointment_id)
+
+            if completed_appointment_id and g.role != UserRole.USER.value:
+                user_manager = UserQueryManager(cur)
+                patient = user_manager.get_patient(appointment['patient_id'])
+                doctor = user_manager.get_doctor(appointment['doctor_id'])
+                NotificationService.notify_appointment_status_changed(
+                    cur,
+                    user_id=patient['user_id'],
+                    doctor_name=doctor['name'],
+                    status=AppointmentStatus.COMPLETED.value
+                )
+        return jsonify({"status": "success", "completed_appointment_id": completed_appointment_id}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.patch('/<int:appointment_id>/cancel')
+@token_required
+def cancel_appointment(appointment_id):
+    if not appointment_id:
+        return jsonify({"status": "error", "message": "No appointment ID provided"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            appointment_manager = AppointmentQueryManager(cur)
+            appointment = appointment_manager.get_appointment(appointment_id)
+
+            if g.role == UserRole.USER.value and appointment['patient_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+            elif g.role == UserRole.DOCTOR.value and appointment['doctor_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            cancelled_appointment_id = appointment_manager.cancel_appointment(appointment_id)
+
+            if cancelled_appointment_id and g.role != UserRole.USER.value:
+                user_manager = UserQueryManager(cur)
+                patient = user_manager.get_patient(appointment['patient_id'])
+                doctor = user_manager.get_doctor(appointment['doctor_id'])
+                NotificationService.notify_appointment_status_changed(
+                    cur,
+                    user_id=patient['user_id'],
+                    doctor_name=doctor['name'],
+                    status=AppointmentStatus.CANCELLED.value
+                )
+        return jsonify({"status": "success", "cancelled_appointment_id": cancelled_appointment_id}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     

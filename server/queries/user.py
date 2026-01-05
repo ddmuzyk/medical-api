@@ -122,6 +122,18 @@ class DoctorQueryHelper:
         )
         return self.cur.fetchall()
     
+    def get_doctors_by_name(self, name_query):
+        like_query = f"%{name_query}%"
+        self.cur.execute(
+            f"""
+            SELECT id, user_id, first_name, last_name, specialization, license_number
+            FROM {UserTables.DOCTORS.value}
+            WHERE first_name ILIKE %s OR last_name ILIKE %s
+            """,
+            (like_query, like_query)
+        )
+        return self.cur.fetchall()
+    
     def delete_doctor_by_user_id(self, user_id):
         self.cur.execute(
             f"""
@@ -305,6 +317,9 @@ class UserQueryManager:
     
     def get_doctors_by_specialization(self, specialization):
         return self.doctor.get_doctors_by_specialization(specialization)
+    
+    def get_doctors_by_name(self, name_query):
+        return self.doctor.get_doctors_by_name(name_query)
     
     def get_pending_users(self):
         return self.user.get_pending_users()

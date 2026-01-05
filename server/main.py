@@ -8,6 +8,7 @@ from controllers.prescription import bp as prescription_bp
 from controllers.patient import bp as patient_bp
 from controllers.doctor import bp as doctor_bp
 from controllers.auth import bp as auth_bp
+from controllers.notification import bp as notification_bp
 import atexit
 
 load_dotenv()
@@ -20,6 +21,7 @@ app.register_blueprint(prescription_bp, url_prefix='/prescription')
 app.register_blueprint(patient_bp, url_prefix='/patient')
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(notification_bp, url_prefix='/notification')
 
 @atexit.register
 def cleanup():

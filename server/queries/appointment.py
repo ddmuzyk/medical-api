@@ -177,7 +177,7 @@ class AvailabilityQueryHelper:
         self.cur.execute(
             f"""
             SELECT 
-            da.id,
+            da.id as availability_id,
             da.doctor_id,
             da.start_time,
             da.end_time,
@@ -249,7 +249,13 @@ class AppointmentQueryManager:
             "appointment_date": availability['start_time']
         })
         
-        return self.appointment.insert_appointment(**appointment_data)
+        appointment_id = self.appointment.insert_appointment(**appointment_data)
+
+         # Mark the availability slot as unavailable
+        if appointment_id:
+            self.set_availability_unavailable(appointment_data.get('availability_id'))
+
+        return appointment_id
 
     def create_doctor_availability(self, **availability_data):
         return self.availability.insert_doctor_availability(**availability_data)
@@ -285,7 +291,14 @@ class AppointmentQueryManager:
         return self.availability.delete_doctor_availability(availability_id)
     
     def cancel_appointment(self, appointment_id):
-        return self.appointment.update_appointment_status(appointment_id=appointment_id, status=AppointmentStatus.CANCELLED.value)
+        appointment_id = self.appointment.update_appointment_status(
+            appointment_id=appointment_id, 
+            status=AppointmentStatus.CANCELLED.value
+        )
+        appointment = self.get_appointment(appointment_id)
+        if appointment:
+            self.set_availability_available(appointment['availability_id'])
+        return appointment_id
     
     def complete_appointment(self, appointment_id):
         return self.appointment.update_appointment_status(appointment_id=appointment_id, status=AppointmentStatus.COMPLETED.value)
@@ -295,5 +308,11 @@ class AppointmentQueryManager:
     
     def delete_doctor_availability(self, availability_id):
         return self.availability.delete_doctor_availability(availability_id)
+    
+    def set_availability_unavailable(self, availability_id):
+        return self.availability.update_doctor_availability(availability_id=availability_id, is_available=False)
+    
+    def set_availability_available(self, availability_id):
+        return self.availability.update_doctor_availability(availability_id=availability_id, is_available=True)
     
     
