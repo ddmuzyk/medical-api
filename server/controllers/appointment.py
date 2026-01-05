@@ -83,6 +83,46 @@ def get_appointments_by_patient(patient_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
+@bp.get('/patient/<int:patient_id>/upcoming')
+@role_required(UserRole.ADMIN.value, UserRole.USER.value)
+def get_upcoming_appointments_by_patient(patient_id):
+    if not patient_id:
+        return jsonify({"status": "error", "message": "No patient ID provided"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            patient = user_manager.get_patient(patient_id)
+
+            if g.role == UserRole.USER.value and patient['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            appointment_manager = AppointmentQueryManager(cur)
+            appointments = appointment_manager.get_upcoming_appointments_by_patient(patient_id)
+
+        return jsonify({"status": "success", "appointments": appointments}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+@bp.get('/patient/<int:patient_id>/past')
+@token_required
+def get_past_appointments_by_patient(patient_id):
+    if not patient_id:
+        return jsonify({"status": "error", "message": "No patient ID provided"}), 400
+    try:
+        with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            patient = user_manager.get_patient(patient_id)
+
+            if g.role == UserRole.USER.value and patient['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            appointment_manager = AppointmentQueryManager(cur)
+            appointments = appointment_manager.get_past_appointments_by_patient(patient_id)
+
+        return jsonify({"status": "success", "appointments": appointments}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
 @bp.get('/doctor/<int:doctor_id>')
 @role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def get_appointments_by_doctor(doctor_id):

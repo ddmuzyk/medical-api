@@ -61,6 +61,31 @@ class AppointmentQueryHelper:
         )
         return self.cur.fetchall()
     
+    def get_upcoming_appointments_by_patient(self, patient_id):
+        self.cur.execute(
+            f"""
+            SELECT * FROM {AppointmentTables.APPOINTMENTS.value}
+            WHERE patient_id = %s 
+            AND appointment_date > NOW()
+            AND status = %s
+            ORDER BY appointment_date ASC
+            """,
+            (patient_id, AppointmentStatus.SCHEDULED.value)
+        )
+        return self.cur.fetchall()
+
+    def get_past_appointments_by_patient(self, patient_id):
+        self.cur.execute(
+            f"""
+            SELECT * FROM {AppointmentTables.APPOINTMENTS.value}
+            WHERE patient_id = %s 
+            AND (appointment_date < NOW() OR status IN (%s, %s))
+            ORDER BY appointment_date DESC
+            """,
+            (patient_id, AppointmentStatus.COMPLETED.value, AppointmentStatus.CANCELLED.value)
+        )
+        return self.cur.fetchall()
+    
     def get_appointments_by_doctor(self, doctor_id):
         self.cur.execute(
             f"""
@@ -213,6 +238,12 @@ class AppointmentQueryManager:
     
     def get_appointments_by_patient(self, patient_id):
         return self.appointment.get_appointments_by_patient(patient_id)
+    
+    def get_upcoming_appointments_by_patient(self, patient_id):
+        return self.appointment.get_upcoming_appointments_by_patient(patient_id)
+    
+    def get_past_appointments_by_patient(self, patient_id):
+        return self.appointment.get_past_appointments_by_patient(patient_id)
     
     def get_appointments_by_doctor(self, doctor_id):
         return self.appointment.get_appointments_by_doctor(doctor_id)
