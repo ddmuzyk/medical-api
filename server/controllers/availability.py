@@ -16,10 +16,13 @@ def create_doctor_availability():
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
-            user = user_manager.get_doctor(data.get('doctor_id'))
+            doctor = user_manager.get_doctor(data.get('doctor_id'))
+            if not doctor:
+                return jsonify({"status": "error", "message": "Doctor not found"}), 404
+
             isAdmin = g.role == UserRole['ADMIN']
 
-            if not user or (not isAdmin and user['user_id'] != g.user_id):
+            if not isAdmin and doctor['user_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized to create availability for this doctor"}), 403
 
             availability_id = appointment_manager.create_doctor_availability(**data)  
@@ -84,6 +87,10 @@ def update_doctor_availability(availability_id):
         return jsonify({"status": "error", "message": "No availability ID provided"}), 400
     try:
         with DbPool.cursor() as cur:
+            is_available = data.get('is_available')
+            if is_available is None:
+                return jsonify({"status": "error", "message": "is_available field is required"}), 400
+
             user_manager = UserQueryManager(cur)
             appointment_manager = AppointmentQueryManager(cur)
             availability = appointment_manager.get_availability_by_id(availability_id)
@@ -97,10 +104,6 @@ def update_doctor_availability(availability_id):
 
             if not isAdmin and not isSelfModification:
                 return jsonify({"status": "error", "message": "Unauthorized to modify this availability" }), 403
-            
-            is_available = data.get('is_available')
-            if is_available is None:
-                return jsonify({"status": "error", "message": "is_available field is required"}), 400
             
             if not is_available:
                 appointment = appointment_manager.get_appointment_by_availability(availability_id)

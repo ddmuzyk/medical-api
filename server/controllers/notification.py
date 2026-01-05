@@ -27,3 +27,23 @@ def get_notifications(user_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
+@bp.post('/<int:notification_id>/read')
+@token_required
+def mark_notification_as_read(notification_id):
+    try:
+        with DbPool.cursor() as cur:
+            notification_manager = NotificationQueryManager(cur)
+            notification = notification_manager.get_notification(notification_id)
+
+            if not notification:
+                return jsonify({"status": "error", "message": "Notification not found"}), 404
+            
+            isAdmin = g.role == UserRole.ADMIN.value
+
+            if not isAdmin and notification['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+            notification_manager.mark_notification_as_read(notification_id)
+        return jsonify({"status": "success", "message": "Notification marked as read"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

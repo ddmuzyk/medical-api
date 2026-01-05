@@ -106,18 +106,21 @@ def delete_prescription(prescription_id):
             user_manager = UserQueryManager(cur)
             prescription_manager = PrescriptionQueryManager(cur)
             prescription = prescription_manager.get_prescription(prescription_id)
+
             if not prescription:
                 return jsonify({"status": "error", "message": "Prescription not found"}), 404
-            doctor = user_manager.get_doctor(prescription['doctor_id']) if prescription else None
+
+            doctor = user_manager.get_doctor(prescription['doctor_id'])
+
+            if not doctor:
+                return jsonify({"status": "error", "message": "Doctor that issued this prescription not found"}), 404
 
             isAdmin = g.role == UserRole.ADMIN.value
-            isSelfDeletion = doctor and doctor['user_id'] == g.user_id
+            isSelfDeletion = doctor['user_id'] == g.user_id
             if not isAdmin and not isSelfDeletion:
                 return jsonify({"status": "error", "message": "Unauthorized to delete this prescription"}), 403
 
             deleted_prescription = prescription_manager.delete_prescription(prescription_id)
-            if not deleted_prescription:
-                return jsonify({"status": "error", "message": "Prescription not found"}), 404
         return jsonify({"status": "success", "deleted_prescription": deleted_prescription}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

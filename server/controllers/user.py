@@ -28,14 +28,12 @@ def get_patient(user_id):
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             patient = user_manager.get_patient_by_user_id(user_id)
+
             if not patient:
                 return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
-
             if g.role == UserRole.USER.value and patient['user_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
-            if not patient:
-                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
         return jsonify({"status": "success", "patient": patient}), 200
     except errors.NoDataFound:
         return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
@@ -51,14 +49,12 @@ def get_doctor(user_id):
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             doctor = user_manager.get_doctor_by_user_id(user_id)
+
             if not doctor:
                 return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
-
             if g.role == UserRole.DOCTOR.value and doctor['user_id'] != g.user_id:
                 return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
-            if not doctor:
-                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
         return jsonify({"status": "success", "doctor": doctor}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -66,7 +62,7 @@ def get_doctor(user_id):
 @bp.post('/register')
 def register_user():
     data = request.get_json() or {}
-    data['role'] = UserRole['USER']
+    data['role'] = UserRole.USER.value
     
     try:
         with DbPool.cursor() as cur:
@@ -103,8 +99,13 @@ def update_user(user_id):
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             user = user_manager.get_user_by_id(user_id)
+
+            if not user:
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+
             isAdmin = g.role == UserRole.ADMIN.value
-            isSelfModification = user and user['user_id'] == g.user_id
+            isSelfModification = user['user_id'] == g.user_id
+
             if not isAdmin and not isSelfModification:
                 return jsonify({"status": "error", "message": "Unauthorized to modify this user"}), 403
 
@@ -138,8 +139,12 @@ def delete_user(user_id):
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
             user = user_manager.get_user_by_id(user_id)
+
+            if not user:
+                return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
+
             isAdmin = g.role == UserRole.ADMIN.value
-            isSelfModification = user and user['user_id'] == g.user_id
+            isSelfModification = user['user_id'] == g.user_id
             if not isAdmin and not isSelfModification:
                 return jsonify({"status": "error", "message": "Unauthorized to delete this user"}), 403
 
