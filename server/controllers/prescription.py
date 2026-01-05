@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, g
+from queries.appointment import AppointmentQueryManager
 from queries.prescription import PrescriptionQueryManager
 from queries.user import UserQueryManager
 from db_connection import DbPool
@@ -15,8 +16,29 @@ def create_prescription():
     
     try:
         with DbPool.cursor() as cur:
+            user_manager = UserQueryManager(cur)
+            doctor = user_manager.get_doctor(data.get('doctor_id'))
+
+            if not doctor:
+                return jsonify({"status": "error", "message": "Doctor not found"}), 404
+            
+            isAdmin = g.role == UserRole.ADMIN.value
+            if not isAdmin and doctor['user_id'] != g.user_id:
+                return jsonify({"status": "error", "message": "Unauthorized to create prescription for this doctor"}), 403
+            
+            appointment_manager = AppointmentQueryManager(cur)
+            appointment = appointment_manager.get_appointment(data.get('appointment_id'))
+
+            if not appointment:
+                return jsonify({"status": "error", "message": "Appointment not found"}), 404
+            
             prescription_manager = PrescriptionQueryManager(cur)
-            prescription_id = prescription_manager.create_prescription(**data)  
+            prescriptions_for_appointment = prescription_manager.get_prescription_by_appointment(data.get('appointment_id'))
+
+            if prescriptions_for_appointment:
+                return jsonify({"status": "error", "message": "Prescription for this appointment already exists"}), 400
+
+            prescription_id = prescription_manager.create_prescription(**data)
 
             if prescription_id:
                 user_manager = UserQueryManager(cur)

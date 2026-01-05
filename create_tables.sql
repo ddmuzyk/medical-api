@@ -48,6 +48,7 @@ CREATE TABLE prescriptions (
   "doctor_id" int NOT NULL,
   "patient_id" int NOT NULL,
   "appointment_id" int,
+  "code" int UNIQUE NOT NULL,
   "issued_at" timestamp,
   "notes" text
 );

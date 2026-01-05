@@ -2,6 +2,8 @@ from utils.queries import create_placeholder_data
 from constants import AppointmentTables
 import datetime as dt
 
+CODE_MINIMAL_VALUE = 1000
+
 class PrescriptionQueryHelper:
     def __init__(self, cursor):
         self.cur = cursor
@@ -58,8 +60,20 @@ class PrescriptionQueryHelper:
         )
         return self.cur.fetchall()
     
+    def get_smallest_prescription_code(self):
+        self.cur.execute(
+            f"""
+            SELECT MIN(code) as min_code FROM {AppointmentTables.PRESCRIPTIONS.value}
+            """
+        )
+        result = self.cur.fetchone()
+        return result['min_code'] if result and result['min_code'] is not None else CODE_MINIMAL_VALUE - 1
+    
     def insert_prescription(self, **prescription_data):
-        allowed_columns = {'appointment_id', 'issued_at', 'patient_id', 'doctor_id', 'notes'}
+        allowed_columns = {'appointment_id', 'issued_at', 'patient_id', 'doctor_id', 'notes', 'code'}
+        smallest_code = self.get_smallest_prescription_code()
+        prescription_data['code'] = smallest_code + 1
+
         columns, placeholders, values = create_placeholder_data({
             **prescription_data,
             "issued_at": prescription_data.get("issued_at", dt.datetime.now())
@@ -136,6 +150,9 @@ class PrescriptionQueryManager:
     
     def get_prescriptions_by_patient(self, user_id):
         return self.prescription.get_prescriptions_by_patient(user_id)
+    
+    def get_prescription_by_appointment(self, appointment_id):
+        return self.prescription.get_prescription_by_appointment(appointment_id)
     
     def get_prescriptions_by_doctor(self, doctor_id):
         return self.prescription.get_prescriptions_by_doctor(doctor_id)

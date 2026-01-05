@@ -4,7 +4,7 @@ from constants import NotificationType
 class NotificationMessagesManager:
     @staticmethod
     def get_content_for_appointment_created(doctor_name, appointment_date):
-        return f"Wizyta u {doctor_name} jest zaplanowana na {appointment_date}"
+        return f"Wizyta u Dr. {doctor_name} jest zaplanowana na {appointment_date}"
     
     @staticmethod
     def transform_appointment_status_to_message(status):
