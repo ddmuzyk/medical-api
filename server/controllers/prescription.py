@@ -4,6 +4,7 @@ from queries.user import UserQueryManager
 from db_connection import DbPool
 from constants import UserRole
 from middleware.auth import token_required, role_required
+from services.notification_service import NotificationService
 
 bp = Blueprint('prescription', __name__)
 
@@ -16,6 +17,16 @@ def create_prescription():
         with DbPool.cursor() as cur:
             prescription_manager = PrescriptionQueryManager(cur)
             prescription_id = prescription_manager.create_prescription(**data)  
+
+            if prescription_id:
+                user_manager = UserQueryManager(cur)
+                patient = user_manager.get_patient(data.get('patient_id'))
+                doctor = user_manager.get_doctor(data.get('doctor_id'))
+                NotificationService.notify_prescription_created(
+                    cur,
+                    user_id=patient['user_id'],
+                    doctor_name=doctor['name']
+                )
         return jsonify({"status": "success", "prescription_id": prescription_id}), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

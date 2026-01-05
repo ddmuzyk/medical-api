@@ -4,6 +4,7 @@ from queries.user import UserQueryManager
 from db_connection import DbPool
 from constants import UserRole
 from middleware.auth import role_required, token_required
+from services.notification_service import NotificationService
 
 bp = Blueprint('appointment', __name__)
 
@@ -11,7 +12,6 @@ bp = Blueprint('appointment', __name__)
 @token_required
 def create_appointment():
     data = request.get_json() or {}
-    
     try:
         with DbPool.cursor() as cur:
             user_manager = UserQueryManager(cur)
@@ -27,6 +27,17 @@ def create_appointment():
                     return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
             appointment_id = appointment_manager.create_appointment(**data)
+
+            if appointment_id and g.role != UserRole.USER.value:
+                appointment = appointment_manager.get_appointment(appointment_id)
+                patient = user_manager.get_patient(appointment['patient_id'])
+                doctor = user_manager.get_doctor(appointment['doctor_id'])
+                NotificationService.notify_appointment_created(
+                    cur,
+                    user_id=patient['user_id'],
+                    doctor_name=doctor['name'],
+                    appointment_date=appointment['appointment_date']
+                )
 
         return jsonify({"status": "success", "appointment_id": appointment_id}), 201
     except Exception as e:
@@ -102,6 +113,17 @@ def change_appointment_status(appointment_id):
                 return jsonify({"status": "error", "message": "Unauthorized to modify this appointment"}), 403
 
             updated_appointment_id = appointment_manager.change_appointment_status(appointment_id=appointment_id, status=data.get('status'))
+
+            if updated_appointment_id and g.role != UserRole.USER.value:
+                user_manager = UserQueryManager(cur)
+                patient = user_manager.get_patient(appointment['patient_id'])
+                doctor = user_manager.get_doctor(appointment['doctor_id'])
+                NotificationService.notify_appointment_status_changed(
+                    cur,
+                    user_id=patient['user_id'],
+                    doctor_name=doctor['name'],
+                    status=data.get('status')
+                )
         return jsonify({"status": "success", "updated_appointment_id": updated_appointment_id}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
