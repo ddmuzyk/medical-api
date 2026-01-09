@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask
+from flask_cors import CORS
 from dotenv import load_dotenv
 from db_connection import DbPool
 from controllers.user import bp as user_bp
@@ -14,6 +15,17 @@ import atexit
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(app, resources={
+    r"/*": {
+        "origins": ["http://localhost:8080", "http://localhost:3000"],
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
+
 app.register_blueprint(user_bp, url_prefix='/user')
 app.register_blueprint(appointment_bp, url_prefix='/appointment')
 app.register_blueprint(availability_bp, url_prefix='/availability')
