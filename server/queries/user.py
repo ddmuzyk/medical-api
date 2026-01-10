@@ -256,11 +256,13 @@ class UserQueryManager:
         if not user_data.get('email') or not user_data.get('password') or not user_data.get('role'):
             raise ValueError("Email, password, and role are required")
         hashed_password = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        isActive = user_data['role'] == UserRole.USER.value or user_data['role'] == UserRole.ADMIN.value
         
         user_id = self.user.insert_user(
             email=user_data['email'],
             password_hash=hashed_password,
-            is_active=user_data['role'] == UserRole.USER.value,
+            is_active=isActive,
             role=user_data['role']
         )
 

@@ -104,7 +104,7 @@ def update_user(user_id):
                 return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
 
             isAdmin = g.role == UserRole.ADMIN.value
-            isSelfModification = user['user_id'] == g.user_id
+            isSelfModification = user['id'] == g.user_id
 
             if not isAdmin and not isSelfModification:
                 return jsonify({"status": "error", "message": "Unauthorized to modify this user"}), 403
@@ -144,7 +144,7 @@ def delete_user(user_id):
                 return jsonify({"status": "error", "message": ErrorMessages.USER_NOT_FOUND.value}), 404
 
             isAdmin = g.role == UserRole.ADMIN.value
-            isSelfModification = user['user_id'] == g.user_id
+            isSelfModification = user['id'] == g.user_id
             if not isAdmin and not isSelfModification:
                 return jsonify({"status": "error", "message": "Unauthorized to delete this user"}), 403
 
