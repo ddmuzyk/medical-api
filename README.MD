@@ -108,12 +108,78 @@ docker exec -it flask_server python create_admin.py admin@hospital.com Admin123!
 
 **Note:** Only admins can create doctor accounts and other admins through the API. Regular users can self-register.
 
-## Seeding Test Data
+## Seeding Database
 
-To populate the database with test data for development:
+### 1. Seed Doctors and Users
+
+First, create basic doctors (required for availability):
+
+```bash
+docker compose exec server python scripts/seed_doctors_and_users.py
+```
+
+This creates 3 doctors:
+- Jan Kowalski (cardiology) - jan.kowalski@hospital.com
+- Anna Nowak (dermatology) - anna.nowak@hospital.com  
+- Piotr Zieliński (pediatrics) - piotr.zielinski@hospital.com
+
+Password for all: `Doctor123!`
+
+### 2. Seed Doctor Availability
+
+Then generate availability slots (Mon-Fri, 09:00-17:00, 4 weeks ahead):
+
+```bash
+docker compose exec server python scripts/seed_weekday_availability.py
+```
+
+This will:
+- Create 1-hour slots from 09:00 to 16:00 for each weekday
+- Skip weekends automatically
+- Generate slots for 4 weeks from today
+- Skip duplicates if slots already exist
+- Set `is_available = TRUE` for all slots
+
+### 3. Seed Additional Test Data (Optional)
+
+For more test data (patients, appointments):
 
 ```bash
 docker exec -it flask_server python seed_database.py
 ```
 
-**Note:** Run this after the database is initialized.
+**Note:** Run seeds in order: doctors → availability → test data.
+
+## Testing Endpoints
+
+### Test Availability Endpoint (No Auth Required)
+
+The availability endpoint is public and should return 200 without redirects:
+
+```bash
+curl "http://localhost:5000/availability?specialization=cardiology&date=2026-01-13"
+```
+
+Expected response:
+```json
+{
+  "status": "success",
+  "availabilities": [
+    {
+      "availability_id": 1,
+      "start_time": "2026-01-13 09:00:00",
+      "end_time": "2026-01-13 10:00:00",
+      "is_available": true,
+      "doctor": {
+        "doctor_id": 1,
+        "first_name": "Jan",
+        "last_name": "Kowalski",
+        "specialization": "cardiology",
+        "license_number": "PWZ12345"
+      }
+    }
+  ]
+}
+```
+
+**Note:** This endpoint uses empty string route (`''`) instead of `'/'` to avoid 308 redirects when called without trailing slash.

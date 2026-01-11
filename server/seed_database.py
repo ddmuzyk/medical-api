@@ -5,7 +5,6 @@ from constants import UserRole, specializations
 from datetime import datetime, timedelta
 
 def seed_database():
-    """Populate database with test data"""
     print("🌱 Seeding database...")
     
     try:
@@ -40,7 +39,6 @@ def seed_database():
                 license_number="LIC789012",
             )
 
-            # Activate first doctor
             print("Activating first doctor account...")
             user_manager.activate_user(doctor1_id)
             
@@ -68,14 +66,18 @@ def seed_database():
             doctor1 = user_manager.get_doctor_by_user_id(doctor1_id)
             doctor2 = user_manager.get_doctor_by_user_id(doctor2_id)
             
+            cur.execute("DELETE FROM doctor_availability WHERE EXTRACT(DOW FROM start_time) IN (0,6)")
             print("Creating availability slots...")
-            tomorrow = datetime.now() + timedelta(days=1)
-            
+            target = datetime.now() + timedelta(days=1)
+            while target.weekday() >= 5:
+                target = target + timedelta(days=1)
+
             for hour in range(9, 17):
                 appointment_manager.create_doctor_availability(
                     doctor_id=doctor1['id'],
-                    start_time=tomorrow.replace(hour=hour, minute=0, second=0),
-                    end_time=tomorrow.replace(hour=hour + 1, minute=0, second=0)
+                    start_time=target.replace(hour=hour, minute=0, second=0),
+                    end_time=target.replace(hour=hour + 1, minute=0, second=0),
+                    is_available=True
                 )
 
             print("✅ Database seeded successfully!")
