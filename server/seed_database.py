@@ -76,7 +76,8 @@ def seed_database():
                 appointment_manager.create_doctor_availability(
                     doctor_id=doctor1['id'],
                     start_time=target.replace(hour=hour, minute=0, second=0),
-                    end_time=target.replace(hour=hour + 1, minute=0, second=0)
+                    end_time=target.replace(hour=hour + 1, minute=0, second=0),
+                    is_available=True
                 )
 
             print("✅ Database seeded successfully!")

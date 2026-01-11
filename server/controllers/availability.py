@@ -8,7 +8,7 @@ from services.notification_service import NotificationService
 
 bp = Blueprint('availability', __name__)
 
-@bp.post('/')
+@bp.route('', methods=['POST'], strict_slashes=False)
 @role_required(UserRole.ADMIN.value, UserRole.DOCTOR.value)
 def create_doctor_availability():
     data = request.get_json() or {}
@@ -44,8 +44,7 @@ def get_doctor_availability(doctor_id):
         print(e)
         return jsonify({"status": "error", "message": str(e)}), 500
     
-@bp.get('/')
-@token_required
+@bp.route('', methods=['GET'], strict_slashes=False)
 def get_availabilities_by_specialization_and_date():
     specialization = request.args.get('specialization')
     date = request.args.get('date')
@@ -57,13 +56,13 @@ def get_availabilities_by_specialization_and_date():
             availabilities = appointment_manager.get_availabilities_by_specialization_and_date(specialization, date)
 
             if not availabilities:
-                return jsonify({"status": "error", "message": "No availabilities found"}), 404
+                return jsonify({"status": "success", "availabilities": []}), 200
             
             structured_availabilities = [
                 {
                     "availability_id": a['availability_id'],
-                    "start_time": str(a['start_time']),
-                    "end_time": str(a['end_time']),
+                    "start_time": a['start_time'].isoformat() if hasattr(a['start_time'], 'isoformat') else str(a['start_time']),
+                    "end_time": a['end_time'].isoformat() if hasattr(a['end_time'], 'isoformat') else str(a['end_time']),
                     "is_available": a['is_available'],
                     "doctor": {
                         "doctor_id": a['doctor_id'],
